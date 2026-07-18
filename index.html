@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;}
+    body{margin:0;-webkit-font-smoothing:antialiased;}
+    ::-webkit-scrollbar{width:0;height:0;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes recPulse{0%{transform:scale(1);opacity:0.4}100%{transform:scale(2);opacity:0}}
+    @keyframes recGlow{0%,100%{opacity:0.4;transform:scale(1)}50%{opacity:0.7;transform:scale(1.1)}}
+    @keyframes recRing{0%{transform:scale(0.85);opacity:0.6}100%{transform:scale(1.6);opacity:0}}
+    @keyframes waveScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    a{color:var(--accent);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+    input,textarea,button{font-family:'Rubik',sans-serif;}
+    input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent) !important;outline-offset:2px;}
+    button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+    .tap-pad{position:relative;}
+    .tap-pad::after{content:'';position:absolute;inset:-9px;}
+    .orb{transition:transform 0.18s cubic-bezier(0.34,1.56,0.64,1);will-change:transform;}
+    .orb:active{transform:scale(0.93) !important;}
+    @keyframes orbRipple{0%{transform:scale(1);opacity:0.55}100%{transform:scale(1.9);opacity:0}}
+    @keyframes pageInR{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes pageInL{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:translateX(0)}}
+  </style>
+</helmet>
+
+<div style="{{rootStyle}}">
+
+  <sc-if value="{{setupOpen}}">
+    <div style="position:fixed;inset:0;background:rgba(30,24,20,0.45);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;" onclick="{{closeSetupBackdrop}}">
+      <div style="background:var(--surface);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,0.18);padding:26px;width:100%;max-width:380px;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px;" onclick="{{stopProp}}">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:1.2rem;font-weight:800;">Settings</div>
+          <button onclick="{{closeSetup}}" aria-label="Close settings" title="Close" class="tap-pad" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Groq API key</div>
+            <div style="font-size:0.72rem;font-weight:700;color:{{apiKeyStatusColor}};">{{apiKeyStatusLabel}}</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="password" value="{{apiKeyDraft}}" onchange="{{onApiKeyDraftChange}}" onkeydown="{{onApiKeyDraftKeyDown}}" placeholder="{{apiKeyPlaceholder}}" autocomplete="off" spellcheck="false" style="flex:1;min-width:0;background:var(--surface2);border:none;color:var(--text);border-radius:14px;padding:12px 15px;font-size:0.88rem;outline:none;">
+            <button onclick="{{submitApiKeyFromInput}}" aria-label="Save API key" title="Save key" style="width:44px;flex-shrink:0;background:var(--text);color:var(--bg);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+            </button>
+          </div>
+          <div style="font-size:0.74rem;color:var(--text2);margin-top:7px;">Powers voice transcription. Free key at <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
+        </div>
+
+        <div style="height:1px;background:var(--surface2);"></div>
+
+        <div>
+          <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;margin-bottom:8px;">Appearance</div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="{{onSelectThemeLight}}" style="flex:1;background:{{themeLightBg}};border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Light</button>
+            <button onclick="{{onSelectThemeDark}}" style="flex:1;background:{{themeDarkBg}};border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Dark</button>
+            <button onclick="{{onSelectThemeAuto}}" style="flex:1;background:{{themeAutoBg}};border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Auto</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;margin-bottom:8px;">Currency</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <sc-for list="{{currencies}}" as="c" hint-placeholder-count="5">
+              <button onclick="{{c.select}}" style="background:{{c.bg}};border:1.5px solid var(--surface2);color:var(--text);padding:8px 14px;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">{{c.symbol}} {{c.code}}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{showNotifPermButton}}" hint-placeholder-val="{{true}}">
+          <div style="height:1px;background:var(--surface2);"></div>
+          <div>
+            <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;margin-bottom:8px;">Notifications</div>
+            <button onclick="{{requestNotifPermission}}" style="width:100%;background:none;border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Enable daily digest alerts</button>
+          </div>
+        </sc-if>
+
+        <div style="height:1px;background:var(--surface2);"></div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;margin-bottom:4px;">Backup</div>
+              <div style="font-size:0.74rem;color:var(--text2);line-height:1.5;">Data lives only on this device.</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button onclick="{{exportData}}" aria-label="Export backup" title="Export backup (JSON)" style="width:42px;height:42px;background:none;border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 19h16"></path></svg>
+              </button>
+              <button onclick="{{triggerImport}}" aria-label="Import backup" title="Import backup (JSON)" style="width:42px;height:42px;background:none;border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"></path><path d="M7 8l5-5 5 5"></path><path d="M4 19h16"></path></svg>
+              </button>
+            </div>
+          </div>
+          <input id="import-file-input" type="file" accept="application/json" onchange="{{onImportFile}}" style="display:none;">
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{itemEditor}}">
+    <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:center;justify-content:center;z-index:280;padding:20px;" onclick="{{closeItemEditorBackdrop}}">
+      <div style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);padding:24px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:13px;" onclick="{{stopProp}}">
+        <div style="font-weight:700;font-size:1.05rem;">{{itemEditorTitle}}</div>
+        <sc-if value="{{itemEditorShowContact}}">
+          <input type="text" value="{{itemEditor.contact}}" onchange="{{onItemEditorContactChange}}" placeholder="Name" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:12px 14px;font-size:1.02rem;font-weight:700;outline:none;">
+        </sc-if>
+        <sc-if value="{{itemEditorNotPerson}}" hint-placeholder-val="{{true}}">
+          <input type="text" value="{{itemEditor.text}}" onchange="{{onItemEditorTextChange}}" placeholder="Description" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:12px 14px;font-size:1.02rem;font-weight:700;outline:none;">
+        </sc-if>
+        <sc-if value="{{itemEditorShowDue}}">
+          <div>
+            <div style="font-size:0.68rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Due</div>
+            <div style="display:flex;gap:8px;">
+              <input type="date" value="{{itemEditor.due}}" onchange="{{onItemEditorDueChange}}" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:10px 13px;font-size:0.85rem;flex:1;min-width:0;outline:none;">
+              <button onclick="{{setItemEditorDueToday}}" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:0 14px;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;">Today</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{itemEditorShowContact}}">
+          <div>
+            <div style="font-size:0.68rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Description</div>
+            <input type="text" value="{{itemEditor.text}}" onchange="{{onItemEditorTextChange}}" placeholder="Description" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:10px 13px;font-size:0.85rem;width:100%;outline:none;">
+          </div>
+        </sc-if>
+        <sc-if value="{{itemEditorShowAmount}}">
+          <div>
+            <div style="font-size:0.68rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Amount</div>
+            <div style="display:flex;align-items:center;background:var(--surface2);border-radius:12px;padding:0 13px;">
+              <span style="font-size:0.85rem;color:var(--text2);">{{currencySymbol}}</span>
+              <input type="text" value="{{itemEditor.amount}}" onchange="{{onItemEditorAmountChange}}" placeholder="0.00" style="background:none;border:none;color:var(--text);padding:10px 6px;font-size:0.85rem;width:100%;outline:none;">
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:10px;margin-top:6px;align-items:center;">
+          <sc-if value="{{itemEditorCanDelete}}">
+            <button onclick="{{deleteItemFromEditor}}" aria-label="Delete item" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:8px;display:flex;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+          </sc-if>
+          <div style="flex:1;"></div>
+          <button onclick="{{saveItemEditor}}" aria-label="Save item" style="background:var(--text);color:var(--bg);border:none;border-radius:999px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{journalModalKey}}">
+    <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:center;justify-content:center;z-index:280;padding:20px;" onclick="{{closeJournalModalBackdrop}}">
+      <div style="background:{{journalModalMoodBg}};border-radius:24px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;">
+          <div style="display:flex;align-items:center;">
+            <div style="font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);">{{journalModalLabel}}</div>
+          </div>
+          <sc-if value="{{isModalReading}}" hint-placeholder-val="{{true}}">
+            <div style="{{modalTextStyle}}">{{modalReadingText}}</div>
+          </sc-if>
+
+          <sc-if value="{{isModalEditing}}" hint-placeholder-val="{{false}}">
+            <textarea value="{{journalModalText}}" onchange="{{onJournalModalTextChange}}" style="background:rgba(255,255,255,0.5);border:none;color:var(--text);border-radius:16px;padding:14px 16px;font-size:0.9rem;min-height:180px;line-height:1.65;resize:vertical;width:100%;outline:none;"></textarea>
+          </sc-if>
+
+          <sc-if value="{{hasReflections}}">
+            <div style="display:flex;flex-direction:column;gap:16px;margin-top:8px;">
+              <sc-for list="{{journalModalReflections}}" as="r" hint-placeholder-count="1">
+                <div style="display:flex;gap:12px;position:relative;">
+                  <div style="width:2px;background:var(--text);opacity:0.15;border-radius:2px;flex-shrink:0;margin-top:6px;margin-bottom:6px;margin-left:4px;"></div>
+                  <div style="flex:1;padding-top:2px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+                      <div style="display:flex;align-items:center;gap:6px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text2);opacity:0.7;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                        <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);">{{r.label}}</div>
+                      </div>
+                      <button onclick="{{r.remove}}" aria-label="Delete reflection" class="tap-pad" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:2px;display:flex;flex-shrink:0;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+                    <div style="font-size:0.88rem;color:var(--text);line-height:1.6;opacity:0.9;">{{r.content}}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isModalIntrospecting}}">
+            <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+              <div style="flex:1;"></div>
+              
+              <div onclick="{{onReflectTap}}" style="background:none;border:1.5px solid var(--text2);border-radius:999px;padding:0 16px;height:40px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <sc-if value="{{isProc}}" hint-placeholder-val="{{false}}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="8" stroke-dasharray="10 10" stroke-linecap="round" style="animation: spin 3s linear infinite;"></circle>
+                    <circle cx="12" cy="12" r="3" fill="currentColor" style="animation: blink 1.5s ease-in-out infinite;"></circle>
+                  </svg>
+                  <span style="font-size:0.85rem;color:var(--text2);font-weight:500;">Saving...</span>
+                </sc-if>
+                
+                <sc-if value="{{isNotProc}}" hint-placeholder-val="{{true}}">
+                  <sc-if value="{{isNotRec}}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text);flex-shrink:0;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                    <span style="font-size:0.85rem;color:var(--text);font-weight:600;">Tap to reflect...</span>
+                  </sc-if>
+                  <sc-if value="{{isRec}}">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#e2685a;animation:blink 1s infinite;flex-shrink:0;"></span>
+                    <span style="font-size:0.85rem;font-weight:600;font-variant-numeric:tabular-nums;color:#e2685a;">{{recTimerLabel}}</span>
+                    <div style="width:30px;height:12px;overflow:hidden;flex-shrink:0;margin-left:4px;">
+                      <svg width="200%" height="12" viewBox="0 0 200 12" style="display:block;animation:waveScroll 1s linear infinite;">
+                        <path d="M0,6 Q25,1 50,6 T100,6 T150,6 T200,6" fill="none" stroke="#e2685a" stroke-width="2" stroke-linecap="round"></path>
+                      </svg>
+                    </div>
+                  </sc-if>
+                </sc-if>
+              </div>
+
+              <button onclick="{{cancelIntrospect}}" aria-label="Cancel" style="background:none;border:1.5px solid var(--text2);color:var(--text);border-radius:999px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          </sc-if>
+          <sc-if value="{{isModalNotIntrospecting}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:1;"></div>
+              
+              <sc-if value="{{isModalReading}}" hint-placeholder-val="{{true}}">
+                <button onclick="{{onReflectFromModal}}" aria-label="Reflect" style="background:none;border:1.5px solid var(--text2);color:var(--text);border-radius:999px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                </button>
+                <button onclick="{{startJournalEdit}}" aria-label="Edit" style="background:none;border:1.5px solid var(--text2);color:var(--text);border-radius:999px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
+              </sc-if>
+
+              <sc-if value="{{isModalEditing}}" hint-placeholder-val="{{false}}">
+                <button onclick="{{confirmDeleteJournalModal}}" aria-label="Delete entry" style="background:none;border:1.5px solid var(--danger);color:var(--danger);border-radius:999px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+                <button onclick="{{cancelJournalEdit}}" aria-label="Cancel edit" style="background:none;border:1.5px solid var(--text2);color:var(--text);border-radius:999px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </button>
+                <button onclick="{{saveJournalModal}}" aria-label="Save entry" style="background:var(--text);color:var(--bg);border:none;border-radius:999px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                </button>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="{{shellStyle}}">
+
+    <header style="{{headerStyle}}">
+      <div>
+        <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);font-weight:700;">{{greeting}}</div>
+        <div style="font-size:1.6rem;font-weight:800;letter-spacing:-0.01em;margin-top:2px;">{{headerDate}}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:2px;">
+        <button onclick="{{toggleSearch}}" aria-label="Search (⌘K)" title="Search (⌘K)" style="background:none;border:none;color:var(--text);cursor:pointer;padding:9px;display:flex;border-radius:999px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l4.25 4.25a1 1 0 0 0 1.41-1.41L15.5 14zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"></path></svg>
+        </button>
+        <button onclick="{{openSetup}}" aria-label="Settings" style="background:none;border:none;color:var(--text);cursor:pointer;padding:9px;display:flex;border-radius:999px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.484.484 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 15.6 12 3.6 3.6 0 0 1 12 15.6z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <nav style="{{navStyle}}">
+      <div style="position:relative; display:flex; gap:6px;">
+        <div style="{{topNavIndicatorStyle}}"></div>
+        <button onclick="{{gotoToday}}" style="background:transparent;position:relative;z-index:1;width:108px;border:none;cursor:pointer;padding:9px 0;font-weight:700;font-size:0.86rem;color:{{todayTabColor}};border-radius:999px;">Today</button>
+        <button onclick="{{gotoJournal}}" style="background:transparent;position:relative;z-index:1;width:108px;border:none;cursor:pointer;padding:9px 0;font-weight:700;font-size:0.86rem;color:{{journalTabColor}};border-radius:999px;">Journal</button>
+        <button onclick="{{gotoLists}}" style="background:transparent;position:relative;z-index:1;width:108px;border:none;cursor:pointer;padding:9px 0;font-weight:700;font-size:0.86rem;color:{{listsTabColor}};border-radius:999px;">Lists<sc-if value="{{listsBadgeCount}}"> ({{listsBadgeCount}})</sc-if></button>
+      </div>
+    </nav>
+
+
+    <sc-if value="{{searchOpen}}">
+      <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:flex-start;justify-content:center;z-index:290;padding:20px;padding-top:80px;" onclick="{{closeSearchBackdrop}}">
+        <div style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:460px;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
+          <div style="padding:18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;">
+            <input type="text" value="{{searchQuery}}" onchange="{{onSearchQueryChange}}" placeholder="Search entries and lists…" autofocus="" style="background:var(--surface2);border:none;color:var(--text);border-radius:14px;padding:12px 16px;font-size:0.92rem;outline:none;">
+            <sc-if value="{{hasSearchResults}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{searchResults}}" as="r" hint-placeholder-count="3">
+                  <div onclick="{{r.open}}" style="display:flex;flex-direction:column;gap:2px;background:var(--surface2);border-radius:14px;padding:10px 14px;cursor:pointer;">
+                    <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);">{{r.kind}}</div>
+                    <div style="font-size:0.85rem;color:var(--text);line-height:1.4;">{{r.text}}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{noSearchResults}}" hint-placeholder-val="{{false}}">
+              <div style="font-size:0.83rem;color:var(--text2);padding:8px 2px;">No matches.</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <main style="{{mainStyle}}">
+
+      <!-- ═══ TODAY TAB ═══ -->
+      <sc-if value="{{isTodayTab}}" hint-placeholder-val="{{true}}">
+        <div style="{{todayColStyle}}">
+
+
+
+          <div style="{{priorityGridStyle}}">
+            <div style="background:var(--surface);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Due Today</div>
+                <sc-if value="{{digest.dueCount}}"><div style="font-size:0.72rem;font-weight:700;color:var(--danger);">{{digest.dueCount}}</div></sc-if>
+              </div>
+              <sc-if value="{{digest.sections.length}}" hint-placeholder-val="{{false}}">
+                <sc-for list="{{digest.sections}}" as="sec" hint-placeholder-count="2">
+                  <div style="display:flex;flex-direction:column;gap:7px;">
+                    <div style="display:flex;align-items:center;gap:7px;">
+                      <span style="width:8px;height:8px;border-radius:999px;background:{{sec.color}};flex-shrink:0;"></span>
+                      <span style="font-size:0.74rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">{{sec.label}}</span>
+                    </div>
+                    <sc-for list="{{sec.items}}" as="it" hint-placeholder-count="1">
+                      <div onclick="{{digest.goto}}" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:12px;cursor:pointer;">
+                        <span style="font-size:0.84rem;color:var(--text);flex:1;">{{it.text}}</span>
+                        <sc-if value="{{it.overdue}}"><span style="font-size:0.63rem;font-weight:700;color:var(--danger);">OVERDUE</span></sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{noDueToday}}" hint-placeholder-val="{{false}}">
+                <div style="font-size:0.83rem;color:var(--text2);">Nothing due today. Clean slate.</div>
+              </sc-if>
+
+              <sc-if value="{{recentlyCompleted.length}}" hint-placeholder-val="{{false}}">
+                <div style="display:flex;flex-direction:column;gap:7px;padding-top:4px;">
+                  <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Recently Completed</div>
+                  <sc-for list="{{recentlyCompleted}}" as="c" hint-placeholder-count="2">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="width:8px;height:8px;border-radius:999px;background:{{c.color}};flex-shrink:0;"></span>
+                      <span style="font-size:0.84rem;color:var(--text2);text-decoration:line-through;flex:1;">{{c.text}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="background:var(--surface2);border-radius:22px;padding:22px;display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:110px;">
+              <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">The Vibe</div>
+              <div style="font-size:1.05rem;font-weight:700;line-height:1.4;color:var(--text);">{{vibeSummary}}</div>
+            </div>
+
+            <sc-if value="{{todayEntryCard}}">
+              <div onclick="{{todayEntryCard.open}}" style="{{todayEntryCard.cardStyle}}">
+                <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Today's Entries</div>
+                <div style="{{todayEntryCard.textStyle}}">{{todayEntryCard.text}}</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{featuredEntry}}">
+              <div onclick="{{featuredEntry.open}}" style="{{featuredEntry.cardStyle}}">
+                <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Past Reflection (Throwback)</div>
+                <div style="{{featuredEntry.textStyle}}">{{featuredEntry.text}}</div>
+              </div>
+            </sc-if>
+          </div>
+
+        </div>
+      </sc-if>
+
+      <!-- ═══ JOURNAL TAB ═══ -->
+      <sc-if value="{{isJournalTab}}" hint-placeholder-val="{{false}}">
+        <div style="{{journalTabStyle}}">
+
+          <div style="{{journalWrapStyle}}">
+            <sc-for list="{{journalColumns}}" as="col" hint-placeholder-count="3">
+              <div style="{{col.style}}">
+                <sc-for list="{{col.items}}" as="e" hint-placeholder-count="2">
+                  <div onclick="{{e.open}}" style="{{e.cardStyle}}">
+                    <div style="{{e.bodyStyle}}">
+                      <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;text-align:{{e.dateAlign}};">{{e.dateLabel}}</div>
+                      <div style="{{e.textStyle}}">{{e.preview}}</div>
+                      <sc-if value="{{e.reflectionCount}}"><div style="font-size:0.7rem;color:var(--text2);font-weight:600;margin-top:10px;">{{e.reflectionLabel}}</div></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{noEntries}}" hint-placeholder-val="{{false}}">
+            <div style="border-radius:20px;background:var(--surface2);padding:32px 20px;text-align:center;color:var(--text2);font-size:0.85rem;line-height:1.8;">No entries yet. Hold the button above to record your first voice note.</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ═══ LISTS TAB ═══ -->
+      <sc-if value="{{isListsTab}}" hint-placeholder-val="{{false}}">
+        <div style="{{listsGridStyle}}">
+          <sc-for list="{{listSections}}" as="sec">
+            <div style="display:flex;flex-direction:column;gap:12px;min-width:0;">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="width:11px;height:11px;border-radius:999px;background:{{sec.accentColor}};flex-shrink:0;"></span>
+                <span style="font-size:1.05rem;font-weight:800;flex:1;color:var(--text);">{{sec.title}}</span>
+                <span style="font-size:0.74rem;color:var(--text2);font-weight:700;">{{sec.countDisplay}}</span>
+              </div>
+            
+              <div style="display:flex;gap:8px;">
+                <input type="text" value="{{sec.quickAddValue}}" onchange="{{sec.onQuickAddChange}}" onkeydown="{{sec.onQuickAddKeyDown}}" placeholder="Quick add…" style="flex:1;min-width:0;background:var(--surface);border:none;color:var(--text);border-radius:14px;padding:11px 15px;font-size:0.85rem;outline:none;">
+                <button onclick="{{sec.onQuickAddSubmit}}" aria-label="Add item" style="width:42px;flex-shrink:0;background:var(--surface);border:none;border-radius:14px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <button onclick="{{sec.onAddDetailed}}" aria-label="Add detailed item" style="width:42px;flex-shrink:0;background:var(--surface);border:none;border-radius:14px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
+                </button>
+              </div>
+            
+              <sc-if value="{{sec.empty}}"><div style="font-size:0.8rem;color:var(--text2);padding:2px 2px;">Nothing here yet.</div></sc-if>
+            
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{sec.items}}" as="it" hint-placeholder-count="2">
+                  <div draggable="true" ondragstart="{{it.onDragStart}}" ondragover="{{it.onDragOver}}" ondrop="{{it.onDrop}}" style="display:flex;align-items:flex-start;gap:10px;background:var(--surface);border-radius:16px;padding:13px 14px;">
+                    <button onclick="{{it.onToggle}}" aria-label="Mark done" class="tap-pad" style="width:19px;height:19px;border-radius:999px;border:2px solid var(--text2);background:none;flex-shrink:0;cursor:pointer;margin-top:2px;padding:0;"></button>
+                    <div style="flex:1;min-width:0;cursor:pointer;" onclick="{{it.onEdit}}">
+                      <div style="font-size:0.94rem;font-weight:700;color:var(--text);line-height:1.4;">{{it.primaryText}}</div>
+                      <sc-if value="{{it.secondaryText}}"><div style="font-size:0.8rem;color:var(--text2);line-height:1.4;margin-top:2px;">{{it.secondaryText}}</div></sc-if>
+                      <sc-if value="{{it.hasMeta}}">
+                        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+                          <sc-if value="{{it.dueLabel}}"><span style="{{it.dueChipStyle}}">{{it.dueLabel}}</span></sc-if>
+                          <sc-if value="{{it.amountLabel}}"><span style="font-size:0.68rem;color:var(--text2);font-weight:600;background:var(--surface2);border-radius:999px;padding:3px 9px;">{{it.amountLabel}}</span></sc-if>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <sc-if value="{{sec.doneCount}}">
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <button onclick="{{sec.onToggleCollapse}}" style="background:none;border:none;color:var(--text2);font-size:0.76rem;font-weight:700;cursor:pointer;text-align:left;padding:4px 2px;">{{sec.completedLabel}}</button>
+                  <sc-if value="{{sec.showDone}}" hint-placeholder-val="{{false}}">
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                      <sc-for list="{{sec.doneItems}}" as="it" hint-placeholder-count="1">
+                        <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border-radius:16px;padding:12px 14px;opacity:0.6;">
+                          <button onclick="{{it.onToggle}}" aria-label="Mark not done" class="tap-pad" style="width:18px;height:18px;border-radius:999px;border:none;background:{{sec.accentColor}};flex-shrink:0;cursor:pointer;margin-top:1px;padding:0;display:flex;align-items:center;justify-content:center;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                          </button>
+                          <div onclick="{{it.onEdit}}" style="flex:1;font-size:0.85rem;color:var(--text2);text-decoration:line-through;cursor:pointer;">{{it.primaryText}}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+    </main>
+
+    <div style="{{recordBarWrapStyle}}">
+      <sc-if value="{{orbHintVisible}}" hint-placeholder-val="{{false}}">
+        <div style="{{hintPillStyle}}">{{recHint}}</div>
+      </sc-if>
+      <sc-if value="{{lastAdded}}">
+        <div style="background:var(--text);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;box-shadow:0 8px 16px rgba(0,0,0,0.12);animation:slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);position:relative;margin-bottom:-4px;">
+          {{lastAddedText}}
+          <div style="position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid var(--text);"></div>
+        </div>
+      </sc-if>
+      
+      <sc-if value="{{orbErr}}">
+        <div style="background:var(--danger);color:#fff;padding:8px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;box-shadow:0 8px 16px rgba(0,0,0,0.12);animation:slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);position:relative;margin-bottom:-4px;">
+          {{orbErr}}
+          <div style="position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid var(--danger);"></div>
+        </div>
+      </sc-if>
+
+      <button onpointerdown="{{onWidgetPointerDown}}" onpointermove="{{onWidgetPointerMove}}" onpointerup="{{onWidgetPointerUp}}" onpointercancel="{{onWidgetPointerUp}}" onclick="{{onWidgetClick}}" onkeydown="{{onRecKeyDown}}" oncontextmenu="{{preventContextMenu}}" aria-label="{{recLabel}}" title="{{recLabel}}" style="{{recordBtnStyle}}">
+        <sc-if value="{{isIdle}}" hint-placeholder-val="{{true}}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+        </sc-if>
+        
+        <sc-if value="{{isRec}}">
+          <div style="{{recPillStyle}}">
+            <span style="width:8px;height:8px;border-radius:999px;background:#e2685a;animation:blink 1s ease infinite;flex-shrink:0;"></span>
+            <span style="font-weight:800;font-variant-numeric:tabular-nums;margin-right:8px;">{{recTimerLabel}}</span>
+            <div style="width:70px;height:14px;overflow:hidden;">
+              <svg width="200%" height="14" viewBox="0 0 200 14" style="display:block;animation:waveScroll 1s linear infinite;">
+                <path d="M0,7 Q25,1 50,7 T100,7 T150,7 T200,7" fill="none" stroke="{{recWaveColor}}" stroke-width="2" stroke-linecap="round"></path>
+              </svg>
+            </div>
+          </div>
+        </sc-if>
+        
+        <sc-if value="{{isProc}}" hint-placeholder-val="{{false}}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9" stroke-dasharray="12 12" stroke-linecap="round" style="animation: spin 3s linear infinite;"></circle>
+            <circle cx="12" cy="12" r="3" fill="currentColor" style="animation: blink 1.5s ease-in-out infinite;"></circle>
+          </svg>
+        </sc-if>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;recordMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;hold&quot;,&quot;options&quot;:[&quot;hold&quot;,&quot;tap&quot;],&quot;tsType&quot;:&quot;'hold'|'tap'&quot;,&quot;section&quot;:&quot;Behavior&quot;},&quot;journalDensity&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;comfortable&quot;,&quot;options&quot;:[&quot;comfortable&quot;,&quot;compact&quot;],&quot;tsType&quot;:&quot;'comfortable'|'compact'&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;categoryColors&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:[&quot;#5b73e0&quot;,&quot;#9b59b6&quot;,&quot;#c98a3e&quot;],&quot;tsType&quot;:&quot;string[]&quot;,&quot;section&quot;:&quot;Appearance&quot;}}">
+function loadJSON(key, fallback){ try{ const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; }catch(e){ return fallback; } }
+function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function todayKeyFn(){ const n = new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
+const MOOD_BG_LIGHT = { blue:'#eef1fb', red:'#fbeaea', green:'#eaf6ee', yellow:'#fdf6e3' };
+const MOOD_BG_DARK  = { blue:'#242a3d', red:'#332423', green:'#22302a', yellow:'#332c1e' };
+const MOOD_STRIP = { blue:'#5b7fdb', red:'#d4685c', green:'#4fa66b', yellow:'#d1a13a' };
+const RECORD_ACCENT = { light:'#b5613a', dark:'#d99169' };
+const CURRENCIES = [{code:'USD',symbol:'$'},{code:'EUR',symbol:'\u20ac'},{code:'GBP',symbol:'\u00a3'},{code:'INR',symbol:'\u20b9'},{code:'JPY',symbol:'\u00a5'}];
+
+class Component extends DCLogic {
+  state = {
+    theme: (typeof localStorage!=='undefined' && localStorage.getItem('planner_theme')) || 'light',
+    tab: 'today',
+    apiKey: (typeof localStorage!=='undefined' && localStorage.getItem('planner_api_key')) || '',
+    setupOpen: (typeof localStorage!=='undefined' && !localStorage.getItem('planner_api_key')),
+    journal: loadJSON('planner_journal', {}),
+    lists: loadJSON('planner_lists', {todo:[], person:[], payment:[]}),
+    flowState: 'idle',
+    recSecs: 0,
+    procTitle: '', procStep: '',
+    errHome: '',
+    lastAdded: null,
+    journalModalKey: null,
+    journalModalText: '',
+    journalModalEditing: false,
+    introspectKey: null,
+    itemEditor: null,
+    searchOpen: false,
+    searchQuery: '',
+    apiKeyDraft: '',
+    tabDir: 1,
+    notifPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'unsupported',
+    collapsedCompleted: { todo:true, person:true, payment:true },
+    quickAdd: { todo:'', person:'', payment:'' },
+    viewportWidth: (typeof window !== 'undefined') ? window.innerWidth : 480,
+    currency: (typeof localStorage!=='undefined' && localStorage.getItem('planner_currency')) || 'INR',
+    widgetX: (typeof window !== 'undefined') ? window.innerWidth / 2 : 240,
+    widgetY: (typeof window !== 'undefined') ? window.innerHeight - 80 : 800,
+  };
+
+  componentDidMount(){
+    this.checkDailyDigest();
+    if (typeof localStorage !== 'undefined' && !localStorage.getItem('planner_seeded')) {
+      localStorage.setItem('planner_seeded', '1');
+      this.seedDemoEntries();
+    }
+    this.setState({ viewportWidth: (typeof window !== 'undefined') ? window.innerWidth : 480 });
+    this._onResize = () => this.setState({ viewportWidth: window.innerWidth });
+    if (typeof window !== 'undefined') window.addEventListener('resize', this._onResize);
+    this._onGlobalKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); this.toggleSearch(); }
+      else if (e.key === 'Escape' && this.state.searchOpen) this.closeSearch();
+    };
+    if (typeof window !== 'undefined') window.addEventListener('keydown', this._onGlobalKeyDown);
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      this._mq = window.matchMedia('(prefers-color-scheme: dark)');
+      this._onMqChange = () => { if (this.state.theme === 'auto') this.forceUpdate(); };
+      if (this._mq.addEventListener) this._mq.addEventListener('change', this._onMqChange);
+    }
+  }
+  componentWillUnmount(){
+    if(this._timer) clearInterval(this._timer);
+    this.stopStreamTracks();
+    if (typeof window !== 'undefined' && this._onResize) window.removeEventListener('resize', this._onResize);
+    if (typeof window !== 'undefined' && this._onGlobalKeyDown) window.removeEventListener('keydown', this._onGlobalKeyDown);
+    if (this._mq && this._mq.removeEventListener) this._mq.removeEventListener('change', this._onMqChange);
+  }
+
+  seedDemoEntries = () => {
+    const dayKey = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+    if (Object.keys(this.state.journal).length === 0) {
+      const demo = {
+        [dayKey(1)]: { content: '• Finally shipped the redesign — felt really good to close that out\n• Grabbed coffee with Priya and caught up properly for the first time in weeks\n• Quiet evening, read for an hour before bed', mood: 'green', createdAt: new Date().toISOString() },
+        [dayKey(2)]: { content: '• Overslept and missed the morning standup\n• Client pushed back hard on the timeline, need to regroup', mood: 'red', createdAt: new Date().toISOString() },
+        [dayKey(3)]: { content: '• Long walk by the river, thinking through the next quarter\n• Not sure yet what the right move is here, sitting with it', mood: 'blue', createdAt: new Date().toISOString() },
+        [dayKey(4)]: { content: '• Rent due Friday\n• Called mom, she\'s doing well\n• Fixed the leaky faucet finally', mood: 'yellow', createdAt: new Date().toISOString() },
+        [dayKey(6)]: { content: '• Big win on the pitch — the client loved the new direction\n• Team dinner to celebrate, everyone in great spirits\n• Genuinely proud of how this quarter has gone so far, a lot of hard work paying off', mood: 'green', createdAt: new Date().toISOString() },
+        [dayKey(8)]: { content: '• Rough day, felt behind on everything\n• Need to reset tomorrow', mood: 'red', createdAt: new Date().toISOString() },
+      };
+      saveJSON('planner_journal', demo);
+      this.setState({ journal: demo });
+    }
+
+    const lists = { todo: [...(this.state.lists.todo||[])], person: [...(this.state.lists.person||[])], payment: [...(this.state.lists.payment||[])] };
+    let changed = false;
+    const addIfEmpty = (type, items) => { if (lists[type].length === 0) { lists[type] = items; changed = true; } };
+    addIfEmpty('todo', [
+      { id: uid(), text: 'Send the revised proposal to the design team before the client call tomorrow morning', due: dayKey(-1), amount:null, contact:null, done:false, createdAt: new Date().toISOString() },
+      { id: uid(), text: 'Pick up dry cleaning', due:null, amount:null, contact:null, done:false, createdAt: new Date().toISOString() },
+      { id: uid(), text: 'Renew passport', due: dayKey(-14), amount:null, contact:null, done:true, createdAt: new Date().toISOString() },
+    ]);
+    addIfEmpty('person', [
+      { id: uid(), text: 'Call back about the apartment lease renewal', due: dayKey(0), amount:null, contact:'Marcus', done:false, createdAt: new Date().toISOString() },
+      { id: uid(), text: 'Follow up with Aunt Reema about the trip', due:null, amount:null, contact:'Reema', done:false, createdAt: new Date().toISOString() },
+    ]);
+    addIfEmpty('payment', [
+      { id: uid(), text: 'Split the dinner bill from Saturday', due:null, amount:'42', contact:null, done:false, createdAt: new Date().toISOString() },
+      { id: uid(), text: 'Electricity bill', due: dayKey(-2), amount:'118', contact:null, done:false, createdAt: new Date().toISOString() },
+    ]);
+    if (changed) { saveJSON('planner_lists', lists); this.setState({ lists }); }
+  };
+
+  systemPrefersDark(){ return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  setThemeMode = (mode) => { localStorage.setItem('planner_theme', mode); this.setState({ theme: mode }); };
+  setCurrency = (code) => { localStorage.setItem('planner_currency', code); this.setState({ currency: code }); };
+  currencySymbol(){ const c = CURRENCIES.find(x => x.code === this.state.currency) || CURRENCIES.find(x => x.code === 'INR'); return c.symbol; }
+  stopProp = (e) => { if(e && e.stopPropagation) e.stopPropagation(); };
+  preventContextMenu = (e) => { if (e && e.preventDefault) e.preventDefault(); return false; };
+
+  switchTab = (tab) => {
+    if (tab === this.state.tab) return;
+    const order = ['today', 'journal', 'lists'];
+    const dir = order.indexOf(tab) > order.indexOf(this.state.tab) ? 1 : -1;
+    this.setState({ tab, tabDir: dir });
+  };
+  gotoToday = () => this.switchTab('today');
+  gotoJournal = () => this.switchTab('journal');
+  gotoLists = () => this.switchTab('lists');
+
+  openSetup = () => this.setState({ setupOpen: true, errHome: '', apiKeyDraft: '' });
+  closeSetup = () => this.setState({ setupOpen: false, errHome: '', apiKeyDraft: '' });
+  closeSetupBackdrop = (e) => { if (e.target === e.currentTarget) this.closeSetup(); };
+  onApiKeyDraftChange = (e) => this.setState({ apiKeyDraft: e.target.value });
+  onApiKeyDraftKeyDown = (e) => { if (e.key === 'Enter') this.submitApiKeyFromInput(); };
+  submitApiKeyFromInput = () => {
+    const k = (this.state.apiKeyDraft || '').trim();
+    if (!k || !k.startsWith('gsk_')) { this.setState({ errHome: 'Groq keys start with gsk_ — check yours.' }); return; }
+    localStorage.setItem('planner_api_key', k);
+    this.setState({ apiKey: k, errHome: '', apiKeyDraft: '' });
+  };
+
+  exportData = () => {
+    const payload = {
+      version: 1, exportedAt: new Date().toISOString(),
+      journal: this.state.journal, lists: this.state.lists,
+      currency: this.state.currency, theme: this.state.theme,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'braindump-backup-' + todayKeyFn() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+  triggerImport = () => { const el = document.getElementById('import-file-input'); if (el) el.click(); };
+  onImportFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!data || typeof data !== 'object') throw new Error('bad file');
+        const journal = data.journal && typeof data.journal === 'object' ? data.journal : this.state.journal;
+        const srcLists = data.lists && typeof data.lists === 'object' ? data.lists : this.state.lists;
+        const lists = { todo: srcLists.todo || [], person: srcLists.person || [], payment: srcLists.payment || [] };
+        saveJSON('planner_journal', journal);
+        saveJSON('planner_lists', lists);
+        if (data.currency) localStorage.setItem('planner_currency', data.currency);
+        if (data.theme) localStorage.setItem('planner_theme', data.theme);
+        this.setState({
+          journal, lists,
+          currency: data.currency || this.state.currency,
+          theme: data.theme || this.state.theme,
+          errHome: '',
+        });
+      } catch (err) {
+        this.setState({ errHome: 'Import failed: file is not a valid backup.' });
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  showOrbErr = (msg) => {
+    this.setState({ flowState: 'idle', orbErr: msg });
+    if (this._orbErrTimer) clearTimeout(this._orbErrTimer);
+    this._orbErrTimer = setTimeout(() => this.setState({ orbErr: '' }), 2500);
+  };
+  friendlyErr(e){
+    const m = (e && e.message) || String(e);
+    if (m.includes('401')) return 'Invalid API key — update it in settings.';
+    if (m.includes('429')) return 'Rate limit hit. Wait a moment and try again.';
+    if (m.toLowerCase().includes('fetch') || m.toLowerCase().includes('network')) return 'Network error.';
+    return m || 'Unknown error.';
+  }
+
+  onWidgetPointerDown = (e) => {
+    if (this.state.flowState === 'proc') return;
+    this._dragging = true;
+    this._dragStartX = e.clientX || (e.touches && e.touches[0].clientX);
+    this._dragStartY = e.clientY || (e.touches && e.touches[0].clientY);
+    this._initialWidgetX = this.state.widgetX;
+    this._initialWidgetY = this.state.widgetY;
+    this._hasDragged = false;
+    if (typeof e.target.setPointerCapture === 'function') e.target.setPointerCapture(e.pointerId);
+  };
+  onWidgetPointerMove = (e) => {
+    if (!this._dragging) return;
+    const cx = e.clientX || (e.touches && e.touches[0].clientX);
+    const cy = e.clientY || (e.touches && e.touches[0].clientY);
+    const dx = cx - this._dragStartX;
+    const dy = cy - this._dragStartY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this._hasDragged = true;
+    let nx = this._initialWidgetX + dx;
+    let ny = this._initialWidgetY + dy;
+    const w = (typeof window !== 'undefined') ? window.innerWidth : 480;
+    const h = (typeof window !== 'undefined') ? window.innerHeight : 800;
+    nx = Math.max(40, Math.min(w - 40, nx));
+    ny = Math.max(40, Math.min(h - 40, ny));
+    this.setState({ widgetX: nx, widgetY: ny });
+  };
+  onWidgetPointerUp = (e) => {
+    if (!this._dragging) return;
+    this._dragging = false;
+    if (typeof e.target.releasePointerCapture === 'function') e.target.releasePointerCapture(e.pointerId);
+  };
+  onReflectTap = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (this.state.flowState === 'rec') {
+      this._holding = false;
+      this.stopRec(true);
+    } else {
+      this._holding = true;
+      this.startRec();
+    }
+  };
+
+  onWidgetClick = (e) => {
+    if (this._hasDragged) return;
+    if (this.state.flowState === 'proc') return;
+    if (this.state.flowState === 'rec') {
+      this._holding = false;
+      this.stopRec(true);
+    } else if (this.state.flowState === 'idle') {
+      this._holding = true;
+      this.startRec();
+    }
+  };
+  onRecKeyDown = (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    if (e.repeat) return;
+    this.onWidgetClick(e);
+  };
+  onRecKeyUp = (e) => {};
+
+  startRec = async () => {
+    if (!this.state.apiKey) { this._holding = false; this.openSetup(); return; }
+    this.setState({ errHome: '' });
+    if (!this._stream || this._stream.getTracks().some(t => t.readyState === 'ended')) {
+      try { this._stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      catch (e) { this._holding = false; this.showOrbErr('Microphone access denied.'); return; }
+    }
+    if (!this._holding) return;
+    this._chunks = [];
+    const MIMES = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus','audio/ogg'];
+    const mime = MIMES.find(m => MediaRecorder.isTypeSupported(m)) || '';
+    try { this._rec = new MediaRecorder(this._stream, mime ? { mimeType: mime } : undefined); }
+    catch (e) { this._rec = new MediaRecorder(this._stream); }
+    this._rec.addEventListener('dataavailable', e => { if (e.data && e.data.size > 0) this._chunks.push(e.data); });
+    this._rec.addEventListener('stop', async () => {
+      this.stopStreamTracks();
+      if (this._chunks.length > 0) {
+        const blob = new Blob(this._chunks, { type: this._rec.mimeType || 'audio/webm' });
+        await this.processBlob(blob);
+      }
+    });
+    this._rec.start(500);
+    this.setState({ flowState: 'rec', recSecs: 0 });
+    this._timer = setInterval(() => this.setState(s => ({ recSecs: s.recSecs + 1 })), 1000);
+  };
+
+  stopRec = (process = true) => {
+    if (this._timer) { clearInterval(this._timer); this._timer = null; }
+    if (this._rec && this._rec.state !== 'inactive') { try { this._rec.stop(); } catch (e) {} }
+    else { this.stopStreamTracks(); if (this.state.flowState === 'rec' && !process) this.setState({ flowState: 'idle' }); }
+    if (!process) { this._chunks = []; this.setState({ flowState: 'idle' }); }
+  };
+  stopStreamTracks = () => {
+    if (this._stream) { this._stream.getTracks().forEach(t => t.stop()); this._stream = null; }
+  };
+
+  processBlob = async (blob) => {
+    this.setState({ flowState: 'proc', procTitle: 'Transcribing…', procStep: 'Sending audio to Whisper' });
+    let transcript;
+    try { transcript = await this.whisper(blob); }
+    catch (e) { this.showOrbErr('Transcription failed: ' + this.friendlyErr(e)); return; }
+    if (!transcript || transcript.trim().length < 4) { this.showOrbErr('No speech detected. Try again.'); return; }
+    this.setState({ procTitle: 'Organizing…', procStep: 'Extracting priorities' });
+    let result;
+    try { result = await this.analyze(transcript); }
+    catch (e) { this.showOrbErr('Analysis failed: ' + this.friendlyErr(e)); return; }
+    
+    // Check if result is just empty or a placeholder
+    if (!result.bullets || result.bullets.length === 0 || (result.bullets.length === 1 && result.bullets[0] === 'short bullet')) {
+      this.showOrbErr('No meaningful content detected.');
+      return;
+    }
+
+    this.commitResult(result);
+  };
+
+  whisper = async (blob) => {
+    const mime = blob.type || 'audio/webm';
+    const ext = mime.includes('mp4') ? 'mp4' : mime.includes('ogg') ? 'ogg' : 'webm';
+    const file = new File([blob], 'r.' + ext, { type: mime });
+    const fd = new FormData(); fd.append('file', file); fd.append('model', 'whisper-large-v3-turbo'); fd.append('response_format', 'text');
+    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + this.state.apiKey }, body: fd });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e && e.error && e.error.message) || ('HTTP ' + res.status)); }
+    return (await res.text()).trim();
+  };
+
+  analyze = async (transcript) => {
+    const todayStr = new Date().toDateString();
+    const sys = 'You are a journaling and task-extraction assistant. Today is ' + todayStr + '.\n' +
+      'Given a spoken voice note, return ONLY strict JSON, no commentary, in this exact shape:\n' +
+      '{"bullets":["short bullet","..."],"mood":"blue|red|green|yellow","tasks":[{"type":"todo|person|payment","text":"short description","due":"YYYY-MM-DD or null","amount":"string or null","contact":"string or null"}]}\n' +
+      'Rules:\n' +
+      '- bullets: distill the note into short chronological bullet points (max ~15 words each).\n' +
+      '- mood: blue=reflective/calm, red=stressed/frustrated, green=positive/accomplished, yellow=neutral/mixed.\n' +
+      '- tasks: ONLY include real actionable items. type "todo" for general tasks, "person" for someone to call/reach out to/speak with (name in contact if mentioned), "payment" for money owed/to pay (amount in amount if mentioned). Resolve relative dates (tomorrow, Friday) to YYYY-MM-DD using today\'s date. Use null for fields that don\'t apply. If nothing actionable, tasks must be [].\n' +
+      '- If the voice note contains no meaningful content, is completely silent, or just says a hallucinated whisper phrase like "Thank you", return exactly: {"bullets":[],"mood":"yellow","tasks":[]}';
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + this.state.apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'system', content: sys }, { role: 'user', content: transcript }],
+        temperature: 0.3, max_tokens: 900,
+        response_format: { type: 'json_object' },
+      }),
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e && e.error && e.error.message) || ('HTTP ' + res.status)); }
+    const data = await res.json();
+    const raw = (data.choices && data.choices[0] && data.choices[0].message.content) || '{}';
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch (e) { const m = raw.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : { bullets: [transcript], mood: 'yellow', tasks: [] }; }
+    parsed.bullets = Array.isArray(parsed.bullets) && parsed.bullets.length ? parsed.bullets : [transcript.trim()];
+    parsed.mood = ['blue','red','green','yellow'].includes(parsed.mood) ? parsed.mood : 'yellow';
+    parsed.tasks = Array.isArray(parsed.tasks) ? parsed.tasks.filter(t => t && t.text && ['todo','person','payment'].includes(t.type)) : [];
+    return parsed;
+  };
+
+  commitResult = (result) => {
+    const prevJournal = JSON.parse(JSON.stringify(this.state.journal));
+    const prevLists = JSON.parse(JSON.stringify(this.state.lists));
+    const journal = { ...this.state.journal };
+    const newLines = result.bullets.map(b => '• ' + b).join('\n');
+    let toastPrefix = 'Entry saved';
+
+    if (this.state.introspectKey) {
+      const key = this.state.introspectKey;
+      const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], createdAt: new Date().toISOString() };
+      if (!existing.introspections) existing.introspections = [];
+      existing.introspections.push({ content: newLines, mood: result.mood, created: new Date().toISOString() });
+      journal[key] = existing;
+      toastPrefix = 'Reflection added';
+    } else {
+      const key = todayKeyFn();
+      const isNewEntry = !journal[key];
+      const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], createdAt: new Date().toISOString() };
+      existing.content = existing.content ? existing.content + '\n' + newLines : newLines;
+      if (isNewEntry) existing.mood = result.mood;
+      existing.updatedAt = new Date().toISOString();
+      journal[key] = existing;
+    }
+    saveJSON('planner_journal', journal);
+
+    const lists = { todo: [...this.state.lists.todo], person: [...this.state.lists.person], payment: [...this.state.lists.payment] };
+    result.tasks.forEach(t => {
+      lists[t.type].unshift({ id: uid(), text: t.text, due: t.due || null, amount: t.amount || null, contact: t.contact || null, done: false, createdAt: new Date().toISOString() });
+    });
+    saveJSON('planner_lists', lists);
+
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => this.setState({ lastAdded: null }), 2000);
+    this.setState({ journal, lists, flowState: 'idle', introspectKey: null, lastAdded: { toastPrefix, tasks: result.tasks, prevJournal, prevLists } });
+  };
+
+  dismissLastAdded = (e) => { if (e && e.stopPropagation) e.stopPropagation(); clearTimeout(this._toastTimer); this.setState({ lastAdded: null }); };
+  undoLastAdded = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const la = this.state.lastAdded; if (!la) return;
+    saveJSON('planner_journal', la.prevJournal);
+    saveJSON('planner_lists', la.prevLists);
+    clearTimeout(this._toastTimer);
+    this.setState({ journal: la.prevJournal, lists: la.prevLists, lastAdded: null });
+  };
+  reviewLastAdded = () => {
+    const la = this.state.lastAdded;
+    if (la && la.tasks && la.tasks.length) this.switchTab('lists');
+  };
+
+  startIntrospect = (key) => {
+    if (this.state.journalModalKey) this.closeJournalModal();
+    this.setState({ introspectKey: key, tab: 'journal' });
+  };
+  cancelIntrospect = () => this.setState({ introspectKey: null });
+
+  toggleItemDone = (listType, id) => {
+    const lists = { ...this.state.lists, [listType]: this.state.lists[listType].map(it => it.id === id ? { ...it, done: !it.done, completedAt: !it.done ? new Date().toISOString() : null } : it) };
+    saveJSON('planner_lists', lists); this.setState({ lists });
+  };
+  deleteItem = (listType, id) => {
+    const lists = { ...this.state.lists, [listType]: this.state.lists[listType].filter(it => it.id !== id) };
+    saveJSON('planner_lists', lists); this.setState({ lists, itemEditor: null });
+  };
+  openItemEditor = (listType, id) => {
+    if (id == null) { this.setState({ itemEditor: { listType, id: null, text: '', due: '', amount: '', contact: '', isNew: true } }); return; }
+    const item = this.state.lists[listType].find(it => it.id === id);
+    if (!item) return;
+    this.setState({ itemEditor: { listType, id, text: item.text, due: item.due || '', amount: item.amount || '', contact: item.contact || '', isNew: false } });
+  };
+  closeItemEditor = () => this.setState({ itemEditor: null });
+  closeItemEditorBackdrop = (e) => { if (e.target === e.currentTarget) this.closeItemEditor(); };
+  onItemEditorTextChange = (e) => this.setState(s => ({ itemEditor: { ...s.itemEditor, text: e.target.value } }));
+  onItemEditorDueChange = (e) => this.setState(s => ({ itemEditor: { ...s.itemEditor, due: e.target.value } }));
+  onItemEditorContactChange = (e) => this.setState(s => ({ itemEditor: { ...s.itemEditor, contact: e.target.value } }));
+  onItemEditorAmountChange = (e) => this.setState(s => ({ itemEditor: { ...s.itemEditor, amount: e.target.value } }));
+  setItemEditorDueToday = () => this.setState(s => ({ itemEditor: { ...s.itemEditor, due: todayKeyFn() } }));
+  deleteItemFromEditor = () => { const ed = this.state.itemEditor; if (ed && ed.id != null) this.deleteItem(ed.listType, ed.id); else this.closeItemEditor(); };
+  saveItemEditor = () => {
+    const ed = this.state.itemEditor;
+    const primaryFilled = ed && (ed.listType === 'person' ? ed.contact.trim() : ed.text.trim());
+    if (!ed || !primaryFilled) { this.closeItemEditor(); return; }
+    const lists = { ...this.state.lists };
+    const patch = { text: ed.text.trim(), due: ed.due || null, amount: ed.amount || null, contact: ed.contact || null };
+    if (ed.isNew) lists[ed.listType] = [{ id: uid(), ...patch, done: false, createdAt: new Date().toISOString() }, ...lists[ed.listType]];
+    else lists[ed.listType] = lists[ed.listType].map(it => it.id === ed.id ? { ...it, ...patch } : it);
+    saveJSON('planner_lists', lists);
+    this.setState({ lists, itemEditor: null });
+  };
+
+  onItemDragStart = (listType, id) => { this._dragListType = listType; this._dragId = id; };
+  onItemDragOver = (e) => { e.preventDefault(); };
+  onItemDrop = (listType, targetId) => {
+    const draggedId = this._dragId;
+    if (this._dragListType !== listType || draggedId == null || draggedId === targetId) { this._dragId = null; return; }
+    const full = this.state.lists[listType];
+    const byId = new Map(full.map(it => [it.id, it]));
+    const activeIds = full.filter(it => !it.done).map(it => it.id);
+    const from = activeIds.indexOf(draggedId);
+    const to = activeIds.indexOf(targetId);
+    if (from === -1 || to === -1) { this._dragId = null; return; }
+    activeIds.splice(from, 1);
+    activeIds.splice(to, 0, draggedId);
+    let cursor = 0;
+    const arr = full.map(it => it.done ? it : byId.get(activeIds[cursor++]));
+    const lists = { ...this.state.lists, [listType]: arr };
+    saveJSON('planner_lists', lists);
+    this.setState({ lists });
+    this._dragId = null;
+  };
+
+  toggleCompletedCollapse = (listType) => this.setState(s => ({ collapsedCompleted: { ...s.collapsedCompleted, [listType]: !s.collapsedCompleted[listType] } }));
+  setQuickAdd = (listType, val) => this.setState(s => ({ quickAdd: { ...s.quickAdd, [listType]: val } }));
+  submitQuickAdd = (listType) => {
+    const val = (this.state.quickAdd[listType] || '').trim();
+    if (!val) return;
+    const lists = { ...this.state.lists };
+    lists[listType] = [{ id: uid(), text: val, due: null, amount: null, contact: null, done: false, createdAt: new Date().toISOString() }, ...lists[listType]];
+    saveJSON('planner_lists', lists);
+    this.setState({ lists, quickAdd: { ...this.state.quickAdd, [listType]: '' } });
+  };
+
+  openJournalModal = (key) => { const e = this.state.journal[key]; if (!e) return; this.setState({ journalModalKey: key, journalModalText: e.content, journalModalEditing: false }); };
+  closeJournalModal = () => { if (this.state.introspectKey) this.cancelIntrospect(); this.setState({ journalModalKey: null, journalModalText: '', journalModalEditing: false }); };
+  closeJournalModalBackdrop = (e) => { if (e.target === e.currentTarget) this.closeJournalModal(); };
+  onJournalModalTextChange = (e) => this.setState({ journalModalText: e.target.value });
+  startJournalEdit = () => this.setState({ journalModalEditing: true });
+  cancelJournalEdit = () => {
+    const key = this.state.journalModalKey;
+    const content = key && this.state.journal[key] ? this.state.journal[key].content : '';
+    this.setState({ journalModalEditing: false, journalModalText: content });
+  };
+  saveJournalModal = () => {
+    const key = this.state.journalModalKey; if (!key) return;
+    const journal = { ...this.state.journal };
+    journal[key] = { ...journal[key], content: this.state.journalModalText, updatedAt: new Date().toISOString() };
+    saveJSON('planner_journal', journal);
+    this.setState({ journal, journalModalEditing: false });
+  };
+  deleteJournalModal = () => {
+    const key = this.state.journalModalKey; if (!key) return;
+    const journal = { ...this.state.journal }; delete journal[key];
+    saveJSON('planner_journal', journal);
+    this.setState({ journal, journalModalKey: null });
+  };
+  confirmDeleteJournalModal = () => {
+    if (typeof window !== 'undefined' && window.confirm && !window.confirm('Delete this entry and all its reflections? This can\'t be undone.')) return;
+    this.deleteJournalModal();
+  };
+  deleteReflection = (idx) => {
+    const key = this.state.journalModalKey; if (!key) return;
+    const journal = { ...this.state.journal };
+    const entry = { ...journal[key] };
+    entry.introspections = (entry.introspections || []).filter((_, i) => i !== idx);
+    journal[key] = entry;
+    saveJSON('planner_journal', journal);
+    this.setState({ journal });
+  };
+
+  excerpt(text, max){
+    const clean = (text || '').trim();
+    if (clean.length <= max) return clean;
+    const cut = clean.slice(0, max);
+    const lastBreak = Math.max(cut.lastIndexOf('\n'), cut.lastIndexOf(' '));
+    return (lastBreak > 40 ? cut.slice(0, lastBreak) : cut).trim() + '…';
+  }
+
+  cardTier(excerptText){
+    const len = (excerptText || '').length;
+    if (len <= 55) return { fontFamily:"'Rubik', sans-serif", fontWeight:800, fontSize:'1.7rem', lineHeight:'1.28', letterSpacing:'-0.01em', textAlign:'center', justifyContent:'center', padding:'36px 24px', clamp:5 };
+    if (len <= 115) return { fontFamily:"'Rubik', sans-serif", fontWeight:700, fontSize:'1.2rem', lineHeight:'1.4', letterSpacing:'-0.005em', textAlign:'left', justifyContent:'center', padding:'24px 22px', clamp:5 };
+    return { fontFamily:"'Rubik', sans-serif", fontWeight:500, fontSize:'1rem', lineHeight:'1.5', letterSpacing:'normal', textAlign:'left', justifyContent:'flex-start', padding:'20px 20px', clamp:6 };
+  }
+
+  categoryColors(){
+    const c = this.props.categoryColors;
+    return Array.isArray(c) && c.length >= 3 ? c : ['#5b73e0', '#9b59b6', '#c98a3e'];
+  }
+
+  buildSection(listType, title, accentVar){
+    const items = this.state.lists[listType] || [];
+    const active = items.filter(it => !it.done);
+    const done = items.filter(it => it.done);
+    const sym = this.currencySymbol();
+    const isPerson = listType === 'person';
+    const todayStr = todayKeyFn();
+    const isUrgent = (it) => !!(it.due && it.due <= todayStr);
+    const mapItem = (it, draggable) => {
+      const primaryText = isPerson && it.contact ? it.contact : it.text;
+      const secondaryText = isPerson && it.contact ? it.text : '';
+      const overdue = !!(it.due && it.due < todayStr);
+      return {
+        id: it.id, text: it.text, done: it.done, primaryText, secondaryText,
+        dueLabel: it.due ? this.formatDate(it.due) : '',
+        dueChipStyle: 'font-size:0.68rem;font-weight:600;border-radius:999px;padding:3px 9px;' + (overdue ? 'color:#fff;background:var(--danger);' : 'color:var(--text2);background:var(--surface2);'),
+        amountLabel: it.amount ? (sym + String(it.amount).replace(/^[^0-9]*/, '')) : '',
+        hasMeta: !!(it.due || it.amount),
+        onToggle: () => this.toggleItemDone(listType, it.id),
+        onEdit: () => this.openItemEditor(listType, it.id),
+        onDragStart: draggable ? () => this.onItemDragStart(listType, it.id) : undefined,
+        onDragOver: draggable ? (e) => this.onItemDragOver(e) : undefined,
+        onDrop: draggable ? () => this.onItemDrop(listType, it.id) : undefined,
+      };
+    };
+    const sortedActive = [...active].sort((a, b) => {
+      const af = isUrgent(a) ? 0 : 1, bf = isUrgent(b) ? 0 : 1;
+      if (af !== bf) return af - bf;
+      if (af === 0) return (a.due || '').localeCompare(b.due || '');
+      return 0;
+    });
+    const collapsed = this.state.collapsedCompleted[listType];
+    let countDisplay = String(active.length);
+    if (listType === 'payment') {
+      const total = active.reduce((sum, it) => sum + (parseFloat(String(it.amount || '0').replace(/[^0-9.]/g, '')) || 0), 0);
+      countDisplay = sym + (Number.isInteger(total) ? total : total.toFixed(2));
+    }
+    return {
+      title, accentColor: 'var(' + accentVar + ')', countDisplay,
+      items: sortedActive.map((it) => mapItem(it, true)),
+      doneItems: done.map((it) => mapItem(it, false)),
+      count: active.length, doneCount: done.length,
+      collapsed, showDone: !collapsed,
+      completedLabel: (collapsed ? '▸ ' : '▾ ') + done.length + ' completed',
+      onToggleCollapse: () => this.toggleCompletedCollapse(listType),
+      quickAddValue: this.state.quickAdd[listType],
+      onQuickAddChange: (e) => this.setQuickAdd(listType, e.target.value),
+      onQuickAddKeyDown: (e) => { if (e.key === 'Enter') this.submitQuickAdd(listType); },
+      onQuickAddSubmit: () => this.submitQuickAdd(listType),
+      onAddDetailed: () => this.openItemEditor(listType, null),
+      empty: active.length === 0,
+    };
+  }
+
+  formatDate(str){ if (!str) return ''; const d = new Date(str + 'T12:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+
+  computeDigest(){
+    const lists = this.state.lists;
+    const todayStr = todayKeyFn();
+    const cc = this.categoryColors();
+    const TYPE_COLOR = { todo: cc[0], person: cc[1], payment: cc[2] };
+    const displayText = (t, it) => (t === 'person' && it.contact) ? (it.contact + (it.text ? ' — ' + it.text : '')) : it.text;
+    const due = [];
+    ['todo','person','payment'].forEach(t => (lists[t]||[]).filter(it => !it.done).forEach(it => {
+      if (it.due && it.due <= todayStr) due.push({ text: displayText(t, it), dueLabel: it.due < todayStr ? 'Overdue' : 'Today', dotColor: TYPE_COLOR[t] });
+    }));
+    const LABELS = { todo:'To-Do', person:'People', payment:'Payments' };
+    const sections = [];
+    ['todo','person','payment'].forEach(t => {
+      const items = (lists[t]||[]).filter(it => !it.done && it.due && it.due <= todayStr).map(it => ({ id: it.id, text: displayText(t, it), overdue: it.due < todayStr }));
+      if (items.length) sections.push({ key: t, label: LABELS[t], color: TYPE_COLOR[t], items });
+    });
+    return { dueCount: due.length, due, sections, goto: () => this.switchTab('lists') };
+  }
+
+  computeRecentlyCompleted(){
+    const lists = this.state.lists;
+    const cc = this.categoryColors();
+    const TYPE_COLOR = { todo: cc[0], person: cc[1], payment: cc[2] };
+    const all = [];
+    ['todo','person','payment'].forEach(t => (lists[t]||[]).filter(it => it.done).forEach(it => {
+      const text = (t === 'person' && it.contact) ? (it.contact + (it.text ? ' — ' + it.text : '')) : it.text;
+      all.push({ text, color: TYPE_COLOR[t], completedAt: it.completedAt || it.createdAt || '' });
+    }));
+    all.sort((a,b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
+    return all.slice(0, 4);
+  }
+
+  buildVibeSummary(digest){
+    const lists = this.state.lists;
+    const totalActive = ['todo','person','payment'].reduce((n,t) => n + (lists[t]||[]).filter(it=>!it.done).length, 0);
+    const personActive = (lists.person||[]).filter(it=>!it.done).length;
+    const overdueCount = digest.due.filter(d => d.dueLabel === 'Overdue').length;
+    let text;
+    if (overdueCount >= 2) text = "A few things are overdue — might be worth clearing those first.";
+    else if (totalActive === 0) text = "Nothing on your plate right now. Enjoy the calm.";
+    else if (personActive >= 3) text = "Quite a few people are waiting to hear back from you.";
+    else if (totalActive >= 8) text = "Your lists have grown a bit — a good time to batch through them.";
+    else text = "Things look manageable today.";
+    return text;
+  }
+
+  requestNotifPermission = async () => {
+    if (typeof Notification === 'undefined') return;
+    const perm = await Notification.requestPermission();
+    this.setState({ notifPermission: perm });
+    if (perm === 'granted') this.checkDailyDigest();
+  };
+  toggleSearch = () => this.setState(s => ({ searchOpen: !s.searchOpen, searchQuery: s.searchOpen ? s.searchQuery : '' }));
+  closeSearch = () => this.setState({ searchOpen: false });
+  closeSearchBackdrop = (e) => { if (e.target === e.currentTarget) this.closeSearch(); };
+  onSearchQueryChange = (e) => this.setState({ searchQuery: e.target.value });
+
+  checkDailyDigest(){
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    const last = localStorage.getItem('planner_last_digest');
+    const todayStr = todayKeyFn();
+    if (last === todayStr) return;
+    localStorage.setItem('planner_last_digest', todayStr);
+    const d = this.computeDigest();
+    try { new Notification('Today’s priorities', { body: d.sections.length ? d.sections.map(s => s.label).join(' · ') + ' due' : 'Nothing pending — clean slate.' }); } catch (e) {}
+  }
+
+  renderVals(){
+    const theme = this.state.theme;
+    const isDark = theme === 'auto' ? this.systemPrefersDark() : theme === 'dark';
+    const vw = this.state.viewportWidth || 480;
+    const isMobile = vw < 680;
+    const isTablet = vw >= 680 && vw < 1024;
+    const isDesktop = vw >= 1024;
+    const isTabletUp = !isMobile;
+    const cc = this.categoryColors();
+
+    const rootStyle = isDark ? {
+      '--bg':'#161310', '--surface':'#211c17', '--surface2':'#2a251d',
+      '--text':'#f2ede4', '--text2':'#a39a8c',
+      '--accent-todo': cc[0], '--accent-person': cc[1], '--accent-payment': cc[2], '--accent':'#d99169',
+      '--danger':'#e2685a',
+      background:'var(--bg)', color:'var(--text)', minHeight:'100dvh', fontFamily:"'Rubik', sans-serif",
+    } : {
+      '--bg':'#fdfaf8', '--surface':'#ffffff', '--surface2':'#f5f0eb',
+      '--text':'#241f1a', '--text2':'#6b6259',
+      '--accent-todo': cc[0], '--accent-person': cc[1], '--accent-payment': cc[2], '--accent':'#b5613a',
+      '--danger':'#c9483d',
+      background:'var(--bg)', color:'var(--text)', minHeight:'100dvh', fontFamily:"'Rubik', sans-serif",
+    };
+
+    const now = new Date();
+    const hour = now.getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const headerDate = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+    const digest = this.computeDigest();
+    const totalActive = ['todo','person','payment'].reduce((n,t) => n + (this.state.lists[t]||[]).filter(it=>!it.done).length, 0);
+
+    const hPad = isDesktop ? '32px' : isTablet ? '28px' : '20px';
+    const shellStyle = { maxWidth: isDesktop ? '1120px' : isTablet ? '760px' : '480px', margin: '0 auto', minHeight: '100dvh', display: 'flex', flexDirection: 'column', position: 'relative' };
+    const mainStyle = { flex: 1, padding: '10px ' + hPad + (isMobile ? ' 140px' : ' 140px'), display: 'flex', flexDirection: 'column', gap: '20px' };
+    const headerStyle = { position:'sticky', top:0, zIndex:60, background:'var(--bg)', padding:'22px ' + hPad + ' 14px', display:'flex', alignItems:'center', justifyContent:'space-between' };
+    const navStyle = { display:'flex', gap:'6px', padding:'6px ' + hPad + ' 16px', position:'relative', justifyContent: isMobile ? 'center' : 'flex-start' };
+
+    // Tab transitions: pill indicator slides between tabs; page content slides in from the travel direction
+    const tabIndex = { today: 0, journal: 1, lists: 2 }[this.state.tab] || 0;
+    const tabEase = 'cubic-bezier(0.22, 1, 0.36, 1)';
+    const pageAnim = { animation: (this.state.tabDir < 0 ? 'pageInL' : 'pageInR') + ' 0.3s ' + tabEase + ' both' };
+    const topNavIndicatorStyle = {
+      position:'absolute', top:0, bottom:0, left: (tabIndex * 114) + 'px', width:'108px',
+      background:'var(--surface2)', borderRadius:'999px', transition:'left 0.3s ' + tabEase,
+    };
+
+    const todayColStyle = { display: 'flex', flexDirection: 'column', gap: '18px', width: '100%', alignSelf: 'stretch', ...pageAnim };
+    const journalTabStyle = { display: 'flex', flexDirection: 'column', gap: '18px', ...pageAnim };
+    const density = this.props.journalDensity || 'comfortable';
+    const journalColGap = density === 'compact' ? '12px' : '18px';
+    const journalColCount = isDesktop ? (density === 'compact' ? 4 : 3) : isTablet ? 2 : 1;
+    const journalWrapStyle = { display: 'flex', gap: journalColGap, alignItems: 'flex-start' };
+    const listsGridStyle = {
+      ...(isDesktop
+        ? { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '26px', alignItems: 'start' }
+        : isTablet
+        ? { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '22px', alignItems: 'start' }
+        : { display: 'flex', flexDirection: 'column', gap: '26px' }),
+      ...pageAnim,
+    };
+    const priorityGridStyle = isTabletUp ? { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', alignItems:'start' } : { display:'flex', flexDirection:'column', gap:'16px' };
+
+    const moodBgMap = isDark ? MOOD_BG_DARK : MOOD_BG_LIGHT;
+    const entryKeys = Object.keys(this.state.journal).sort();
+    const entriesList = entryKeys.slice().reverse().map(key => {
+      const e = this.state.journal[key];
+      const d = new Date(key + 'T12:00:00');
+      const excerptText = this.excerpt(e.content, 175);
+      const tier = this.cardTier(excerptText);
+      const cardStyle = {
+        background: moodBgMap[e.mood] || moodBgMap.yellow, borderRadius: '20px', cursor: 'pointer',
+        width: '100%',
+      };
+      const bodyStyle = { padding: tier.padding, display: 'flex', flexDirection: 'column', justifyContent: tier.justifyContent, minHeight: tier.textAlign === 'center' ? '130px' : '100px' };
+      const textStyle = { fontFamily: tier.fontFamily, fontWeight: tier.fontWeight, fontSize: tier.fontSize, lineHeight: tier.lineHeight, letterSpacing: tier.letterSpacing, textAlign: tier.textAlign, color: 'var(--text)', whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: tier.clamp, WebkitBoxOrient: 'vertical', overflow: 'hidden' };
+      const reflectionCount = (e.introspections || []).length;
+      const remPx = parseFloat(tier.fontSize) * 16;
+      const lhPx = parseFloat(tier.lineHeight) * remPx;
+      const charsPerLine = Math.max(12, Math.round(260 / remPx));
+      const neededLines = Math.min(tier.clamp, Math.max(1, Math.ceil(excerptText.length / charsPerLine)));
+      const padV = (parseFloat(tier.padding) || 20) * 2;
+      const estHeight = padV + 24 + neededLines * lhPx + (reflectionCount ? 22 : 0);
+      return {
+        key, dateLabel: d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }), preview: excerptText,
+        cardStyle, bodyStyle, textStyle, dateAlign: tier.textAlign === 'center' ? 'center' : 'left',
+        reflectionCount, reflectionLabel: reflectionCount ? ('↩ ' + reflectionCount + ' reflection' + (reflectionCount > 1 ? 's' : '')) : '',
+        open: () => this.openJournalModal(key),
+        estHeight,
+      };
+    });
+
+    const journalColHeights = new Array(journalColCount).fill(0);
+    const journalColumns = Array.from({ length: journalColCount }, () => ({
+      items: [],
+      style: { flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column', gap: journalColGap },
+    }));
+    entriesList.forEach(entry => {
+      let idx = 0;
+      for (let i = 1; i < journalColCount; i++) if (journalColHeights[i] < journalColHeights[idx]) idx = i;
+      journalColumns[idx].items.push(entry);
+      journalColHeights[idx] += entry.estHeight + parseFloat(journalColGap);
+    });
+
+    const searchQuery = (this.state.searchQuery || '').trim().toLowerCase();
+    const searchResults = [];
+    
+    // 1. Actions
+    const ACTIONS = [
+      { id: 'a-rec', kind: 'Action', text: 'Create Journal Entry', open: () => { this.closeSearch(); this.onWidgetClick(); } },
+      { id: 'a-todo', kind: 'Action', text: 'Create To-Do', open: () => { this.closeSearch(); this.switchTab('lists'); this.openItemEditor('todo'); } },
+      { id: 'a-settings', kind: 'Action', text: 'Open Settings', open: () => { this.closeSearch(); this.openSetup(); } },
+      { id: 'a-journal', kind: 'Action', text: 'View Journal Tab', open: () => { this.closeSearch(); this.switchTab('journal'); } },
+      { id: 'a-lists', kind: 'Action', text: 'View Lists Tab', open: () => { this.closeSearch(); this.switchTab('lists'); } },
+    ];
+    ACTIONS.forEach(a => {
+      if (!searchQuery || a.text.toLowerCase().includes(searchQuery)) searchResults.push(a);
+    });
+
+    if (searchQuery) {
+      const LIST_LABELS = { todo:'To-Do', person:'People', payment:'Payments' };
+      entryKeys.forEach(key => {
+        const e = this.state.journal[key];
+        if ((e.content || '').toLowerCase().includes(searchQuery)) {
+          searchResults.push({
+            id: 'j-' + key,
+            kind: 'Journal · ' + new Date(key + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' }),
+            text: this.excerpt(e.content, 90),
+            open: () => { this.closeSearch(); this.switchTab('journal'); this.openJournalModal(key); },
+          });
+        }
+      });
+      ['todo','person','payment'].forEach(t => {
+        (this.state.lists[t] || []).forEach(it => {
+          const hay = ((it.text || '') + ' ' + (it.contact || '')).toLowerCase();
+          if (hay.includes(searchQuery)) {
+            searchResults.push({
+              id: 'l-' + it.id, kind: LIST_LABELS[t] + (it.done ? ' · Done' : ''),
+              text: (t === 'person' && it.contact) ? (it.contact + (it.text ? (' — ' + it.text) : '')) : it.text,
+              open: () => { this.closeSearch(); this.switchTab('lists'); this.openItemEditor(t, it.id); },
+            });
+          }
+        });
+      });
+    }
+
+    let featuredEntry = null;
+    if (entryKeys.length) {
+      const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+      const key = entryKeys[dayOfYear % entryKeys.length];
+      const e = this.state.journal[key];
+      const featExcerpt = this.excerpt(e.content, 130);
+      const tier = this.cardTier(featExcerpt);
+      featuredEntry = {
+        label: new Date(key + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' }),
+        text: featExcerpt, moodBg: moodBgMap[e.mood] || moodBgMap.yellow,
+        cardStyle: {
+          background: 'none', border: '1.5px solid var(--surface2)', borderRadius: '22px', cursor: 'pointer',
+          display: 'flex', flexDirection: 'column', padding: '22px', gap: '10px', justifyContent: 'center', minHeight: '150px',
+        },
+        textStyle: { fontFamily: tier.fontFamily, fontWeight: tier.fontWeight, fontSize: tier.fontSize, lineHeight: tier.lineHeight, letterSpacing: tier.letterSpacing, textAlign: tier.textAlign, color: 'var(--text)', whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+        open: () => this.openJournalModal(key),
+      };
+    }
+
+    let todayEntryCard = null;
+    const todayKey = todayKeyFn();
+    const eToday = this.state.journal[todayKey];
+    if (eToday && eToday.content.trim()) {
+      const featExcerpt = this.excerpt(eToday.content, 130);
+      const tier = this.cardTier(featExcerpt);
+      todayEntryCard = {
+        text: featExcerpt, moodBg: moodBgMap[eToday.mood] || moodBgMap.yellow,
+        cardStyle: {
+          background: 'none', border: '1.5px solid var(--surface2)', borderRadius: '22px', cursor: 'pointer',
+          display: 'flex', flexDirection: 'column', padding: '22px', gap: '10px', justifyContent: 'center', minHeight: '150px',
+        },
+        textStyle: { fontFamily: tier.fontFamily, fontWeight: tier.fontWeight, fontSize: tier.fontSize, lineHeight: tier.lineHeight, letterSpacing: tier.letterSpacing, textAlign: tier.textAlign, color: 'var(--text)', whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+        open: () => this.openJournalModal(todayKey),
+      };
+    }
+
+    let lastAddedText = '';
+    if (this.state.lastAdded) {
+      const counts = { todo:0, person:0, payment:0 };
+      this.state.lastAdded.tasks.forEach(t => counts[t.type]++);
+      const parts = [];
+      if (counts.todo) parts.push(counts.todo + ' to-do' + (counts.todo>1?'s':''));
+      if (counts.person) parts.push(counts.person + ' contact' + (counts.person>1?'s':''));
+      if (counts.payment) parts.push(counts.payment + ' payment' + (counts.payment>1?'s':''));
+      lastAddedText = (this.state.lastAdded.toastPrefix || 'Entry saved') + (parts.length ? ' · Added ' + parts.join(', ') : '.');
+    }
+
+    const journalModalKey = this.state.journalModalKey;
+    const journalModalEntry = journalModalKey ? this.state.journal[journalModalKey] : null;
+    const journalModalLabel = journalModalKey ? new Date(journalModalKey + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' }) : '';
+    const journalModalReflections = journalModalEntry && journalModalEntry.introspections ? journalModalEntry.introspections.map((t, i) => ({
+      label: t.created ? new Date(t.created).toLocaleDateString('en-US', { month:'short', day:'numeric' }) : 'Reflection',
+      content: t.content, moodBg: moodBgMap[t.mood] || moodBgMap.yellow,
+      remove: () => this.deleteReflection(i),
+    })) : [];
+    const onReflectFromModal = () => { this.setState({ introspectKey: journalModalKey }); };
+    const isModalIntrospecting = this.state.introspectKey === journalModalKey && !!journalModalKey;
+    const modalReadingText = journalModalEntry ? this.excerpt(journalModalEntry.content, 100000) : '';
+    const modalTier = journalModalEntry ? this.cardTier(this.excerpt(journalModalEntry.content, 175)) : null;
+    const modalTextStyle = modalTier ? { fontFamily: modalTier.fontFamily, fontWeight: modalTier.fontWeight, fontSize: modalTier.fontSize, lineHeight: modalTier.lineHeight, letterSpacing: modalTier.letterSpacing, textAlign: modalTier.textAlign, color: 'var(--text)', whiteSpace: 'pre-wrap' } : {};
+
+    const ed = this.state.itemEditor;
+    const itemEditorTitle = ed ? (ed.isNew ? 'New item' : 'Edit item') : '';
+    const itemEditorShowDue = !!ed;
+    const itemEditorShowContact = ed && ed.listType === 'person';
+    const itemEditorNotPerson = !itemEditorShowContact;
+    const itemEditorShowAmount = ed && ed.listType === 'payment';
+
+    const todaysEntry = this.state.journal[todayKeyFn()];
+    const isIdle = this.state.flowState === 'idle';
+    const isRec = this.state.flowState === 'rec';
+    const isProc = this.state.flowState === 'proc';
+    const mm = String(Math.floor(this.state.recSecs / 60)).padStart(2, '0');
+    const ss = String(this.state.recSecs % 60).padStart(2, '0');
+    const recordMode = this.props.recordMode || 'hold';
+    const verb = recordMode === 'tap' ? 'Tap' : 'Hold';
+    const introspectKey = this.state.introspectKey;
+    const introspectLabel = introspectKey ? new Date(introspectKey + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }) : '';
+
+    const recAccent = isDark ? RECORD_ACCENT.dark : RECORD_ACCENT.light;
+    const modalProcBg = isDark ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.55)';
+    const dangerColor = isDark ? '#e2685a' : '#c9483d';
+
+    // Floating voice orb — the app's single entry point. Lit-sphere gradient, breathes when
+    // idle, swells and ripples while recording, spins while processing.
+    const noPress = { userSelect:'none', WebkitUserSelect:'none', WebkitTouchCallout:'none', WebkitTapHighlightColor:'transparent', touchAction:'none' };
+    const orbGradIdle = isDark
+      ? 'radial-gradient(circle at 30% 25%, #e9b697 0%, #b56a3f 48%, #8a4a26 100%)'
+      : 'radial-gradient(circle at 30% 25%, #eaa87e 0%, #c06a3e 48%, #9c4f28 100%)';
+    const orbGradRec = isDark
+      ? 'radial-gradient(circle at 30% 25%, #f0937f 0%, #d05648 48%, #a03428 100%)'
+      : 'radial-gradient(circle at 30% 25%, #ef9280 0%, #c9483d 48%, #9c3228 100%)';
+    const recordBarWrapStyle = {
+      position: 'fixed', left: `${this.state.widgetX}px`, top: `${this.state.widgetY}px`, transform: 'translate(-50%, -50%)',
+      zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+      pointerEvents: 'none'
+    };
+    const recordBtnStyle = {
+      ...noPress,
+      pointerEvents: 'auto', touchAction: 'none',
+      background: this.state.orbErr ? 'var(--danger)' : 'var(--text)', color: 'var(--bg)',
+      borderRadius: isRec ? '32px' : '999px', 
+      padding: isRec ? '16px 24px' : '18px',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+      boxShadow: '0 16px 36px rgba(0,0,0,0.28)',
+      border: 'none', cursor: 'grab',
+      transition: 'width 0.25s cubic-bezier(0.22, 1, 0.36, 1), height 0.25s, border-radius 0.25s, padding 0.25s, background-color 0.3s',
+      width: isRec ? '240px' : '64px',
+      height: isRec ? 'auto' : '64px'
+    };
+    const recBtnStyleCompact = {
+      ...noPress,
+      width:'100%', border:'none', borderRadius:'999px', padding:'14px 16px',
+      background: 'var(--text)', color: 'var(--bg)', boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer',
+    };
+    const recPillStyle = { display:'flex', alignItems:'center', gap:'9px', fontSize:'0.9rem', pointerEvents:'auto' };
+    const hintPillStyle = { background:'var(--surface)', color:'var(--text2)', borderRadius:'999px', padding:'7px 14px', fontSize:'0.74rem', fontWeight:600, boxShadow:'0 6px 16px rgba(0,0,0,0.10)', pointerEvents:'none', maxWidth:'280px', textAlign:'center' };
+    const recWaveColor = 'var(--bg)';
+
+
+    return {
+      rootStyle, isDark, isLight: !isDark, greeting, headerDate,
+      isDesktop, isMobile, isTablet, isTabletUp, shellStyle, mainStyle, headerStyle, navStyle, todayColStyle, journalWrapStyle, listsGridStyle, priorityGridStyle,
+      setupOpen: this.state.setupOpen, errHome: this.state.errHome, orbErr: this.state.orbErr,
+      submitApiKeyFromInput: this.submitApiKeyFromInput, openSetup: this.openSetup,
+      closeSetup: this.closeSetup, closeSetupBackdrop: this.closeSetupBackdrop,
+      onWidgetPointerDown: this.onWidgetPointerDown, onWidgetPointerMove: this.onWidgetPointerMove,
+      onWidgetPointerUp: this.onWidgetPointerUp, onWidgetClick: this.onWidgetClick,
+      apiKeyDraft: this.state.apiKeyDraft, onApiKeyDraftChange: this.onApiKeyDraftChange, onApiKeyDraftKeyDown: this.onApiKeyDraftKeyDown,
+      apiKeyStatusLabel: this.state.apiKey ? 'Connected · ····' + this.state.apiKey.slice(-4) : 'Not connected',
+      apiKeyStatusColor: this.state.apiKey ? 'var(--accent)' : 'var(--danger)',
+      apiKeyPlaceholder: this.state.apiKey ? 'Replace key…' : 'gsk_…',
+      exportData: this.exportData, triggerImport: this.triggerImport, onImportFile: this.onImportFile,
+      stopProp: this.stopProp, preventContextMenu: this.preventContextMenu,
+      isTodayTab: this.state.tab === 'today', isJournalTab: this.state.tab === 'journal', isListsTab: this.state.tab === 'lists',
+      gotoToday: this.gotoToday, gotoJournal: this.gotoJournal, gotoLists: this.gotoLists,
+      todayTabColor: this.state.tab==='today' ? 'var(--text)' : 'var(--text2)',
+      journalTabColor: this.state.tab==='journal' ? 'var(--text)' : 'var(--text2)',
+      listsTabColor: this.state.tab==='lists' ? 'var(--text)' : 'var(--text2)',
+      topNavIndicatorStyle, journalTabStyle,
+      listsBadgeCount: totalActive > 0 ? (totalActive > 9 ? '9+' : String(totalActive)) : '',
+      digest, noDueToday: digest.sections.length === 0,
+      searchOpen: this.state.searchOpen, searchQuery: this.state.searchQuery,
+      toggleSearch: this.toggleSearch, closeSearch: this.closeSearch, closeSearchBackdrop: this.closeSearchBackdrop,
+      onSearchQueryChange: this.onSearchQueryChange, searchResults,
+      hasSearchResults: searchResults.length > 0, noSearchResults: !!searchQuery && searchResults.length === 0,
+      showNotifPermButton: this.state.notifPermission !== 'granted' && typeof Notification !== 'undefined',
+      requestNotifPermission: this.requestNotifPermission,
+      lastAdded: this.state.lastAdded, lastAddedText, dismissLastAdded: this.dismissLastAdded,
+      undoLastAdded: this.undoLastAdded, reviewLastAdded: this.reviewLastAdded,
+      lastAddedHasTasks: !!(this.state.lastAdded && this.state.lastAdded.tasks && this.state.lastAdded.tasks.length),
+      lastAddedCursor: (this.state.lastAdded && this.state.lastAdded.tasks && this.state.lastAdded.tasks.length) ? 'cursor:pointer;' : '',
+      entriesList, journalColumns, noEntries: entriesList.length === 0, featuredEntry, todayEntryCard,
+      journalModalKey, journalModalText: this.state.journalModalText, journalModalLabel,
+      journalModalMoodBg: journalModalEntry ? (moodBgMap[journalModalEntry.mood] || moodBgMap.yellow) : moodBgMap.yellow,
+      journalModalReflections, hasReflections: journalModalReflections.length > 0, onReflectFromModal,
+      isModalIntrospecting, isModalNotIntrospecting: !isModalIntrospecting,
+      isModalEditing: this.state.journalModalEditing, isModalReading: !this.state.journalModalEditing,
+      modalReadingText, modalTextStyle, startJournalEdit: this.startJournalEdit, cancelJournalEdit: this.cancelJournalEdit,
+      closeJournalModal: this.closeJournalModal, closeJournalModalBackdrop: this.closeJournalModalBackdrop,
+      onJournalModalTextChange: this.onJournalModalTextChange, saveJournalModal: this.saveJournalModal, deleteJournalModal: this.deleteJournalModal,
+      confirmDeleteJournalModal: this.confirmDeleteJournalModal,
+      itemEditor: ed, itemEditorTitle, itemEditorShowDue, itemEditorShowContact, itemEditorNotPerson, itemEditorShowAmount,
+      itemEditorCanDelete: !!(ed && ed.id != null),
+      closeItemEditor: this.closeItemEditor, closeItemEditorBackdrop: this.closeItemEditorBackdrop, setItemEditorDueToday: this.setItemEditorDueToday,
+      onItemEditorTextChange: this.onItemEditorTextChange, onItemEditorDueChange: this.onItemEditorDueChange,
+      onItemEditorContactChange: this.onItemEditorContactChange, onItemEditorAmountChange: this.onItemEditorAmountChange,
+      saveItemEditor: this.saveItemEditor, deleteItemFromEditor: this.deleteItemFromEditor,
+      currencySymbol: this.currencySymbol(), currency: this.state.currency, setCurrency: this.setCurrency,
+      currencies: CURRENCIES.map(c => ({ code:c.code, symbol:c.symbol, bg: c.code === this.state.currency ? 'var(--surface2)' : 'none', select: () => this.setCurrency(c.code) })),
+      themeMode: this.state.theme,
+      themeLightBg: this.state.theme === 'light' ? 'var(--surface2)' : 'none',
+      themeDarkBg: this.state.theme === 'dark' ? 'var(--surface2)' : 'none',
+      themeAutoBg: this.state.theme === 'auto' ? 'var(--surface2)' : 'none',
+      onSelectThemeLight: () => this.setThemeMode('light'),
+      onSelectThemeDark: () => this.setThemeMode('dark'),
+      onSelectThemeAuto: () => this.setThemeMode('auto'),
+      isIdle, isRec, isNotRec: !isRec, isProc, isNotProc: !isProc, procTitle: this.state.procTitle, procStep: this.state.procStep,
+      isIntrospecting: !!introspectKey, isNotIntrospecting: !introspectKey, introspectLabel, cancelIntrospect: this.cancelIntrospect,
+      recLabel: isRec ? 'Recording — release to stop' : introspectKey ? verb + ' to reflect' : (todaysEntry ? verb + ' to record more' : verb + ' to record'),
+      recHint: isRec ? '' : introspectKey ? ('Adds a reflection to ' + introspectLabel + '.') : (todaysEntry ? "Adds to today's entry and your lists." : verb + " and speak freely, let go when done."),
+      recLabelColor: '#fff', recWaveColor,
+      recTimerLabel: mm + ':' + ss,
+      recBtnStyleCompact, modalProcBg,
+      recordBarWrapStyle, recordBtnStyle,
+      recPillStyle, hintPillStyle, pillWaveColor: 'var(--bg)',
+      orbHintVisible: isIdle && Object.keys(this.state.journal).length === 0,
+      onWidgetPointerUp: this.onWidgetPointerUp, onWidgetClick: this.onWidgetClick, onReflectTap: this.onReflectTap,
+      onRecPointerDown: this.onRecPointerDown, onRecPointerUp: this.onRecPointerUp,
+      onRecKeyDown: this.onRecKeyDown, onRecKeyUp: this.onRecKeyUp,
+      preventContextMenu: this.preventContextMenu,
+      recentlyCompleted: this.computeRecentlyCompleted(), vibeSummary: this.buildVibeSummary(digest),
+      listSections: [
+        this.buildSection('todo', 'To-Do', '--accent-todo'),
+        this.buildSection('person', 'People to Contact', '--accent-person'),
+        this.buildSection('payment', 'Payments', '--accent-payment')
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -2,13 +2,12 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
@@ -685,6 +684,7 @@ class Component extends DCLogic {
 
   onWidgetPointerDown = (e) => {
     if (this.state.flowState === 'proc') return;
+    this.setState({ hintDismissed: true });
     this._dragging = true;
     this._dragStartX = e.clientX || (e.touches && e.touches[0].clientX);
     this._dragStartY = e.clientY || (e.touches && e.touches[0].clientY);
@@ -1412,7 +1412,7 @@ class Component extends DCLogic {
       display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px', cursor:'pointer',
     };
     const recPillStyle = { display:'flex', alignItems:'center', gap:'9px', fontSize:'0.9rem', pointerEvents:'auto' };
-    const hintPillStyle = { background:'var(--surface)', color:'var(--text2)', borderRadius:'999px', padding:'7px 14px', fontSize:'0.74rem', fontWeight:600, boxShadow:'0 6px 16px rgba(0,0,0,0.10)', pointerEvents:'none', maxWidth:'280px', textAlign:'center' };
+    const hintPillStyle = { background:'var(--surface)', color:'var(--text2)', borderRadius:'999px', padding:'7px 14px', fontSize:'0.74rem', fontWeight:400, boxShadow:'0 6px 16px rgba(0,0,0,0.10)', pointerEvents:'none', maxWidth:'280px', textAlign:'center' };
     const recWaveColor = 'var(--bg)';
 
 
@@ -1476,13 +1476,13 @@ class Component extends DCLogic {
       isIdle, isRec, isNotRec: !isRec, isProc, isNotProc: !isProc, procTitle: this.state.procTitle, procStep: this.state.procStep,
       isIntrospecting: !!introspectKey, isNotIntrospecting: !introspectKey, introspectLabel, cancelIntrospect: this.cancelIntrospect,
       recLabel: isRec ? 'Recording — release to stop' : introspectKey ? verb + ' to reflect' : (todaysEntry ? verb + ' to record more' : verb + ' to record'),
-      recHint: isRec ? '' : introspectKey ? ('Adds a reflection to ' + introspectLabel + '.') : (todaysEntry ? "Adds to today's entry and your lists." : verb + " and speak freely, let go when done."),
+      recHint: isRec ? '' : introspectKey ? ('Click to reflect') : (todaysEntry ? 'Click to record more' : 'Click to record an entry'),
       recLabelColor: '#fff', recWaveColor,
       recTimerLabel: mm + ':' + ss,
       recBtnStyleCompact, modalProcBg,
       recordBarWrapStyle, recordBtnStyle,
       recPillStyle, hintPillStyle, pillWaveColor: 'var(--bg)',
-      orbHintVisible: isIdle && Object.keys(this.state.journal).length === 0,
+      orbHintVisible: !this.state.hintDismissed && isIdle && Object.keys(this.state.journal).length === 0,
       onWidgetPointerUp: this.onWidgetPointerUp, onWidgetClick: this.onWidgetClick, onReflectTap: this.onReflectTap,
       onRecPointerDown: this.onRecPointerDown, onRecPointerUp: this.onRecPointerUp,
       onRecKeyDown: this.onRecKeyDown, onRecKeyUp: this.onRecKeyUp,

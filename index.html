@@ -565,6 +565,7 @@ class Component extends DCLogic {
     currency: (typeof localStorage!=='undefined' && localStorage.getItem('planner_currency')) || 'INR',
     widgetX: (typeof window !== 'undefined') ? window.innerWidth / 2 : 240,
     widgetY: (typeof window !== 'undefined') ? window.innerHeight - 80 : 800,
+    hintToggle: false,
   };
 
   componentDidMount(){
@@ -574,6 +575,13 @@ class Component extends DCLogic {
       // No dummy content
     }
     this.setState({ viewportWidth: (typeof window !== 'undefined') ? window.innerWidth : 480 });
+    this._hintInterval = setInterval(() => {
+      if (!this.state.hintDismissed && Object.keys(this.state.journal).length === 0) {
+        this.setState(s => ({ hintToggle: !s.hintToggle }));
+      } else {
+        clearInterval(this._hintInterval);
+      }
+    }, 3500);
     this._onResize = () => this.setState({ viewportWidth: window.innerWidth });
     if (typeof window !== 'undefined') window.addEventListener('resize', this._onResize);
     this._onGlobalKeyDown = (e) => {
@@ -589,6 +597,7 @@ class Component extends DCLogic {
   }
   componentWillUnmount(){
     if(this._timer) clearInterval(this._timer);
+    if(this._hintInterval) clearInterval(this._hintInterval);
     this.stopStreamTracks();
     if (typeof window !== 'undefined' && this._onResize) window.removeEventListener('resize', this._onResize);
     if (typeof window !== 'undefined' && this._onGlobalKeyDown) window.removeEventListener('keydown', this._onGlobalKeyDown);
@@ -1476,7 +1485,7 @@ class Component extends DCLogic {
       isIdle, isRec, isNotRec: !isRec, isProc, isNotProc: !isProc, procTitle: this.state.procTitle, procStep: this.state.procStep,
       isIntrospecting: !!introspectKey, isNotIntrospecting: !introspectKey, introspectLabel, cancelIntrospect: this.cancelIntrospect,
       recLabel: isRec ? 'Recording — release to stop' : introspectKey ? verb + ' to reflect' : (todaysEntry ? verb + ' to record more' : verb + ' to record'),
-      recHint: isRec ? '' : introspectKey ? ('Click to reflect') : (todaysEntry ? 'Click to record more' : 'Click to record an entry'),
+      recHint: isRec ? '' : introspectKey ? ('Click to reflect') : (todaysEntry ? 'Click to record more' : (this.state.hintToggle ? 'Drag to move this button' : 'Click to record an entry')),
       recLabelColor: '#fff', recWaveColor,
       recTimerLabel: mm + ':' + ss,
       recBtnStyleCompact, modalProcBg,

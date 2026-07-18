@@ -767,7 +767,7 @@ class Component extends DCLogic {
     catch (e) { this._rec = new MediaRecorder(this._stream); }
     this._rec.addEventListener('dataavailable', e => { if (e.data && e.data.size > 0) this._chunks.push(e.data); });
     this._rec.addEventListener('stop', async () => {
-      this.stopStreamTracks();
+      // this.stopStreamTracks(); // Keep stream alive to avoid repeated permission prompts
       if (this._chunks.length > 0) {
         const blob = new Blob(this._chunks, { type: this._rec.mimeType || 'audio/webm' });
         await this.processBlob(blob);
@@ -781,7 +781,7 @@ class Component extends DCLogic {
   stopRec = (process = true) => {
     if (this._timer) { clearInterval(this._timer); this._timer = null; }
     if (this._rec && this._rec.state !== 'inactive') { try { this._rec.stop(); } catch (e) {} }
-    else { this.stopStreamTracks(); if (this.state.flowState === 'rec' && !process) this.setState({ flowState: 'idle' }); }
+    else { /* this.stopStreamTracks(); */ if (this.state.flowState === 'rec' && !process) this.setState({ flowState: 'idle' }); }
     if (!process) { this._chunks = []; this.setState({ flowState: 'idle' }); }
   };
   stopStreamTracks = () => {

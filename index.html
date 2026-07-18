@@ -1053,9 +1053,15 @@ class Component extends DCLogic {
     });
     const collapsed = this.state.collapsedCompleted[listType];
     let countDisplay = String(active.length);
+    let completedLabel = (collapsed ? '▸ ' : '▾ ') + done.length + ' completed';
     if (listType === 'payment') {
       const total = active.reduce((sum, it) => sum + (parseFloat(String(it.amount || '0').replace(/[^0-9.]/g, '')) || 0), 0);
-      countDisplay = sym + (Number.isInteger(total) ? total : total.toFixed(2));
+      countDisplay = sym + (Number.isInteger(total) ? total : total.toFixed(2)) + ' due';
+      
+      if (done.length > 0) {
+        const totalDone = done.reduce((sum, it) => sum + (parseFloat(String(it.amount || '0').replace(/[^0-9.]/g, '')) || 0), 0);
+        completedLabel = (collapsed ? '▸ ' : '▾ ') + done.length + ' paid (' + sym + (Number.isInteger(totalDone) ? totalDone : totalDone.toFixed(2)) + ')';
+      }
     }
     return {
       title, accentColor: 'var(' + accentVar + ')', countDisplay,
@@ -1063,7 +1069,7 @@ class Component extends DCLogic {
       doneItems: done.map((it) => mapItem(it, false)),
       count: active.length, doneCount: done.length,
       collapsed, showDone: !collapsed,
-      completedLabel: (collapsed ? '▸ ' : '▾ ') + done.length + ' completed',
+      completedLabel,
       onToggleCollapse: () => this.toggleCompletedCollapse(listType),
       quickAddValue: this.state.quickAdd[listType],
       onQuickAddChange: (e) => this.setQuickAdd(listType, e.target.value),
@@ -1086,7 +1092,7 @@ class Component extends DCLogic {
     ['todo','person','payment'].forEach(t => (lists[t]||[]).filter(it => !it.done).forEach(it => {
       if (it.due && it.due <= todayStr) due.push({ text: displayText(t, it), dueLabel: it.due < todayStr ? 'Overdue' : 'Today', dotColor: TYPE_COLOR[t] });
     }));
-    const LABELS = { todo:'To-Do', person:'People', payment:'Payments' };
+    const LABELS = { todo:'To-Dos', person:'People', payment:'Payments' };
     const sections = [];
     ['todo','person','payment'].forEach(t => {
       const items = (lists[t]||[]).filter(it => !it.done && it.due && it.due <= todayStr).map(it => ({ id: it.id, text: displayText(t, it), overdue: it.due < todayStr }));
@@ -1263,7 +1269,7 @@ class Component extends DCLogic {
     });
 
     if (searchQuery) {
-      const LIST_LABELS = { todo:'To-Do', person:'People', payment:'Payments' };
+      const LIST_LABELS = { todo:'To-Dos', person:'People', payment:'Payments' };
       entryKeys.forEach(key => {
         const e = this.state.journal[key];
         if ((e.content || '').toLowerCase().includes(searchQuery)) {
@@ -1483,8 +1489,8 @@ class Component extends DCLogic {
       preventContextMenu: this.preventContextMenu,
       recentlyCompleted: this.computeRecentlyCompleted(), vibeSummary: this.buildVibeSummary(digest),
       listSections: [
-        this.buildSection('todo', 'To-Do', '--accent-todo'),
-        this.buildSection('person', 'People to Contact', '--accent-person'),
+        this.buildSection('todo', 'To-Dos', '--accent-todo'),
+        this.buildSection('person', 'People', '--accent-person'),
         this.buildSection('payment', 'Payments', '--accent-payment')
       ]
     };

@@ -572,7 +572,7 @@ class Component extends DCLogic {
     this.checkDailyDigest();
     if (typeof localStorage !== 'undefined' && !localStorage.getItem('planner_seeded')) {
       localStorage.setItem('planner_seeded', '1');
-      this.seedDemoEntries();
+      // No dummy content
     }
     this.setState({ viewportWidth: (typeof window !== 'undefined') ? window.innerWidth : 480 });
     this._onResize = () => this.setState({ viewportWidth: window.innerWidth });
@@ -596,39 +596,7 @@ class Component extends DCLogic {
     if (this._mq && this._mq.removeEventListener) this._mq.removeEventListener('change', this._onMqChange);
   }
 
-  seedDemoEntries = () => {
-    const dayKey = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
-    if (Object.keys(this.state.journal).length === 0) {
-      const demo = {
-        [dayKey(1)]: { content: '• Finally shipped the redesign — felt really good to close that out\n• Grabbed coffee with Priya and caught up properly for the first time in weeks\n• Quiet evening, read for an hour before bed', mood: 'green', createdAt: new Date().toISOString() },
-        [dayKey(2)]: { content: '• Overslept and missed the morning standup\n• Client pushed back hard on the timeline, need to regroup', mood: 'red', createdAt: new Date().toISOString() },
-        [dayKey(3)]: { content: '• Long walk by the river, thinking through the next quarter\n• Not sure yet what the right move is here, sitting with it', mood: 'blue', createdAt: new Date().toISOString() },
-        [dayKey(4)]: { content: '• Rent due Friday\n• Called mom, she\'s doing well\n• Fixed the leaky faucet finally', mood: 'yellow', createdAt: new Date().toISOString() },
-        [dayKey(6)]: { content: '• Big win on the pitch — the client loved the new direction\n• Team dinner to celebrate, everyone in great spirits\n• Genuinely proud of how this quarter has gone so far, a lot of hard work paying off', mood: 'green', createdAt: new Date().toISOString() },
-        [dayKey(8)]: { content: '• Rough day, felt behind on everything\n• Need to reset tomorrow', mood: 'red', createdAt: new Date().toISOString() },
-      };
-      saveJSON('planner_journal', demo);
-      this.setState({ journal: demo });
-    }
 
-    const lists = { todo: [...(this.state.lists.todo||[])], person: [...(this.state.lists.person||[])], payment: [...(this.state.lists.payment||[])] };
-    let changed = false;
-    const addIfEmpty = (type, items) => { if (lists[type].length === 0) { lists[type] = items; changed = true; } };
-    addIfEmpty('todo', [
-      { id: uid(), text: 'Send the revised proposal to the design team before the client call tomorrow morning', due: dayKey(-1), amount:null, contact:null, done:false, createdAt: new Date().toISOString() },
-      { id: uid(), text: 'Pick up dry cleaning', due:null, amount:null, contact:null, done:false, createdAt: new Date().toISOString() },
-      { id: uid(), text: 'Renew passport', due: dayKey(-14), amount:null, contact:null, done:true, createdAt: new Date().toISOString() },
-    ]);
-    addIfEmpty('person', [
-      { id: uid(), text: 'Call back about the apartment lease renewal', due: dayKey(0), amount:null, contact:'Marcus', done:false, createdAt: new Date().toISOString() },
-      { id: uid(), text: 'Follow up with Aunt Reema about the trip', due:null, amount:null, contact:'Reema', done:false, createdAt: new Date().toISOString() },
-    ]);
-    addIfEmpty('payment', [
-      { id: uid(), text: 'Split the dinner bill from Saturday', due:null, amount:'42', contact:null, done:false, createdAt: new Date().toISOString() },
-      { id: uid(), text: 'Electricity bill', due: dayKey(-2), amount:'118', contact:null, done:false, createdAt: new Date().toISOString() },
-    ]);
-    if (changed) { saveJSON('planner_lists', lists); this.setState({ lists }); }
-  };
 
   systemPrefersDark(){ return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
   setThemeMode = (mode) => { localStorage.setItem('planner_theme', mode); this.setState({ theme: mode }); };

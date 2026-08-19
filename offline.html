@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal Zero — Offline</title>
+  <meta name="theme-color" content="#b5613a">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rubik', system-ui, sans-serif;
+      background: #fdfaf8;
+      color: #241f1a;
+      padding: 24px;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .card { max-width: 360px; }
+    h1 { margin: 0 0 10px; font-size: 1.25rem; }
+    p { margin: 0 0 18px; color: #6b6259; font-size: 0.92rem; }
+    a {
+      display: inline-block;
+      text-decoration: none;
+      background: #241f1a;
+      color: #fdfaf8;
+      font-weight: 700;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #161310; color: #f2ede4; }
+      p { color: #a39a8c; }
+      a { background: #f2ede4; color: #161310; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>You’re offline</h1>
+    <p>Journal Zero can’t load right now. Open the installed app to browse saved entries, or try again when you’re back online.</p>
+    <a href="./index.html">Try again</a>
+  </div>
+</body>
+</html>

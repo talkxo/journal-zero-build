@@ -3,6 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Journal Zero</title>
+<meta name="description" content="Local-first voice journal and planner.">
+<meta name="theme-color" content="#fdfaf8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Journal Zero">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="apple-touch-icon" href="./icon.png">
 <script src="./support.js"></script>
@@ -36,6 +45,14 @@
     @keyframes orbRipple{0%{transform:scale(1);opacity:0.55}100%{transform:scale(1.9);opacity:0}}
     @keyframes pageInR{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
     @keyframes pageInL{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes sheetIn{from{opacity:0;transform:translateY(10px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .sheet-in{animation:sheetIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;}
+    .check-ring{transition:background 0.18s ease, border-color 0.18s ease, transform 0.16s ease;}
+    .check-ring:active{transform:scale(0.86);}
+    @media (prefers-reduced-motion: reduce){
+      .sheet-in{animation:none !important;}
+      .check-ring{transition:none;}
+    }
   </style>
 </helmet>
 
@@ -43,7 +60,7 @@
 
   <sc-if value="{{setupOpen}}">
     <div style="position:fixed;inset:0;background:rgba(30,24,20,0.45);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;" onclick="{{closeSetupBackdrop}}">
-      <div style="background:var(--surface);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,0.18);padding:26px;width:100%;max-width:380px;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px;" onclick="{{stopProp}}">
+      <div class="sheet-in" style="background:var(--surface);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,0.18);padding:26px;width:100%;max-width:380px;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;gap:16px;" onclick="{{stopProp}}">
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <div style="font-size:1.2rem;font-weight:800;">Settings</div>
           <button onclick="{{closeSetup}}" aria-label="Close settings" title="Close" class="tap-pad" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;">
@@ -63,17 +80,33 @@
             </button>
           </div>
           <div style="font-size:0.74rem;color:var(--text2);margin-top:7px;">Powers voice transcription. Free key at <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
+          <sc-if value="{{errHome}}"><div style="font-size:0.74rem;color:var(--danger);margin-top:8px;font-weight:600;">{{errHome}}</div></sc-if>
         </div>
 
         <div style="height:1px;background:var(--surface2);"></div>
 
         <div>
           <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;margin-bottom:8px;">Appearance</div>
-          <div style="display:flex;gap:6px;">
-            <button onclick="{{onSelectThemeLight}}" style="flex:1;background:{{themeLightBg}};border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Light</button>
-            <button onclick="{{onSelectThemeDark}}" style="flex:1;background:{{themeDarkBg}};border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Dark</button>
-            <button onclick="{{onSelectThemeAuto}}" style="flex:1;background:{{themeAutoBg}};border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Auto</button>
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <div style="display:flex;gap:6px;flex:1;min-width:0;">
+              <button onclick="{{onSelectThemeLight}}" aria-label="Light" title="Light" style="flex:1;height:42px;background:{{themeLightBg}};border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+              </button>
+              <button onclick="{{onSelectThemeDark}}" aria-label="Dark" title="Dark" style="flex:1;height:42px;background:{{themeDarkBg}};border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"></path></svg>
+              </button>
+              <button onclick="{{onSelectThemeAuto}}" aria-label="Auto" title="Auto" style="flex:1;height:42px;background:{{themeAutoBg}};border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"></path></svg>
+              </button>
+            </div>
+            <div style="display:flex;gap:6px;flex:1;min-width:0;align-items:stretch;">
+              <label class="scheme-pick" title="Pick a color" style="flex:1;position:relative;height:42px;border-radius:12px;border:1.5px solid var(--surface2);overflow:hidden;cursor:pointer;background:{{schemeSwatch}};">
+                <input type="color" value="{{schemeColorValue}}" oninput="{{onSchemeColorChange}}" onchange="{{onSchemeColorChange}}" aria-label="Page color" style="position:absolute;inset:-10px;width:calc(100% + 20px);height:calc(100% + 20px);border:none;padding:0;cursor:pointer;opacity:0;">
+              </label>
+              <button onclick="{{resetSchemeColor}}" style="background:{{schemeDefaultBg}};border:1.5px solid var(--surface2);color:var(--text);padding:0 10px;border-radius:12px;font-weight:600;font-size:0.72rem;cursor:pointer;white-space:nowrap;flex-shrink:0;">Default</button>
+            </div>
           </div>
+          <div style="font-size:0.72rem;color:var(--text2);margin-top:7px;line-height:1.45;">Tint saved on this device.</div>
         </div>
 
         <div>
@@ -90,6 +123,7 @@
           <div>
             <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;margin-bottom:8px;">Notifications</div>
             <button onclick="{{requestNotifPermission}}" style="width:100%;background:none;border:1.5px solid var(--surface2);color:var(--text);padding:9px 0;border-radius:12px;font-weight:600;font-size:0.8rem;cursor:pointer;">Enable daily digest alerts</button>
+            <div style="font-size:0.72rem;color:var(--text2);margin-top:7px;line-height:1.45;">Sends once when you open the app that day.</div>
           </div>
         </sc-if>
 
@@ -118,7 +152,7 @@
 
   <sc-if value="{{itemEditor}}">
     <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:center;justify-content:center;z-index:280;padding:20px;" onclick="{{closeItemEditorBackdrop}}">
-      <div style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);padding:24px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:13px;" onclick="{{stopProp}}">
+      <div class="sheet-in" style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);padding:24px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:13px;" onclick="{{stopProp}}">
         <div style="font-weight:700;font-size:1.05rem;">{{itemEditorTitle}}</div>
         <sc-if value="{{itemEditorShowContact}}">
           <input type="text" value="{{itemEditor.contact}}" onchange="{{onItemEditorContactChange}}" placeholder="Name" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:12px 14px;font-size:1.02rem;font-weight:700;outline:none;">
@@ -127,12 +161,10 @@
           <input type="text" value="{{itemEditor.text}}" onchange="{{onItemEditorTextChange}}" placeholder="Description" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:12px 14px;font-size:1.02rem;font-weight:700;outline:none;">
         </sc-if>
         <sc-if value="{{itemEditorShowDue}}">
-          <div>
-            <div style="font-size:0.68rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Due</div>
-            <div style="display:flex;gap:8px;">
-              <input type="date" value="{{itemEditor.due}}" onchange="{{onItemEditorDueChange}}" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:10px 13px;font-size:0.85rem;flex:1;min-width:0;outline:none;">
-              <button onclick="{{setItemEditorDueToday}}" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:0 14px;font-size:0.78rem;font-weight:700;cursor:pointer;white-space:nowrap;">Today</button>
-            </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:0.61rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0;">Due</div>
+            <input type="date" value="{{itemEditor.due}}" onchange="{{onItemEditorDueChange}}" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:6px 10px;font-size:0.76rem;flex:1;min-width:0;outline:none;">
+            <button onclick="{{setItemEditorDueToday}}" style="background:var(--surface2);border:none;color:var(--text);border-radius:12px;padding:6px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;">Today</button>
           </div>
         </sc-if>
         <sc-if value="{{itemEditorShowContact}}">
@@ -167,12 +199,34 @@
 
   <sc-if value="{{journalModalKey}}">
     <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:center;justify-content:center;z-index:280;padding:20px;" onclick="{{closeJournalModalBackdrop}}">
-      <div style="background:{{journalModalMoodBg}};border-radius:24px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
+      <div class="sheet-in" style="background:{{journalModalMoodBg}};border-radius:24px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
         <div style="padding:22px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;">
-          <div style="display:flex;align-items:center;">
-            <div style="font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);">{{journalModalLabel}}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <sc-if value="{{hasJournalPrev}}">
+              <button onclick="{{gotoJournalPrev}}" aria-label="Previous day" class="tap-pad" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;flex-shrink:0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+            </sc-if>
+            <sc-if value="{{noJournalPrev}}"><div style="width:22px;flex-shrink:0;"></div></sc-if>
+            <div style="font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);flex:1;text-align:center;">{{journalModalLabel}}</div>
+            <sc-if value="{{hasJournalNext}}">
+              <button onclick="{{gotoJournalNext}}" aria-label="Next day" class="tap-pad" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;flex-shrink:0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </sc-if>
+            <sc-if value="{{noJournalNext}}"><div style="width:22px;flex-shrink:0;"></div></sc-if>
           </div>
-          <sc-if value="{{isModalReading}}" hint-placeholder-val="{{true}}">
+          <sc-if value="{{showJournalDumps}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;flex-direction:column;gap:18px;">
+              <sc-for list="{{journalModalDumps}}" as="dump" hint-placeholder-count="1">
+                <div>
+                  <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">{{dump.label}}</div>
+                  <div style="{{modalTextStyle}}">{{dump.content}}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{showFlatJournal}}" hint-placeholder-val="{{true}}">
             <div style="{{modalTextStyle}}">{{modalReadingText}}</div>
           </sc-if>
 
@@ -294,12 +348,15 @@
       </div>
     </nav>
 
+    <sc-if value="{{showStatusBanner}}">
+      <div style="margin:0 20px 8px;padding:10px 14px;background:var(--surface2);border-radius:14px;font-size:0.78rem;font-weight:600;color:var(--text2);line-height:1.45;text-align:center;">{{statusBannerText}}</div>
+    </sc-if>
 
     <sc-if value="{{searchOpen}}">
       <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:flex-start;justify-content:center;z-index:290;padding:20px;padding-top:80px;" onclick="{{closeSearchBackdrop}}">
-        <div style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:460px;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
+        <div class="sheet-in" style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:460px;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
           <div style="padding:18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;">
-            <input type="text" value="{{searchQuery}}" onchange="{{onSearchQueryChange}}" placeholder="Search entries and lists…" autofocus="" style="background:var(--surface2);border:none;color:var(--text);border-radius:14px;padding:12px 16px;font-size:0.92rem;outline:none;">
+            <input type="text" value="{{searchQuery}}" oninput="{{onSearchQueryChange}}" onchange="{{onSearchQueryChange}}" placeholder="Search entries and lists…" autofocus="" style="background:var(--surface2);border:none;color:var(--text);border-radius:14px;padding:12px 16px;font-size:0.92rem;outline:none;">
             <sc-if value="{{hasSearchResults}}" hint-placeholder-val="{{false}}">
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <sc-for list="{{searchResults}}" as="r" hint-placeholder-count="3">
@@ -318,7 +375,7 @@
       </div>
     </sc-if>
 
-    <main style="{{mainStyle}}">
+    <main style="{{mainStyle}}" onpointerdown="{{onMainPointerDown}}" onpointerup="{{onMainPointerUp}}">
 
       <!-- ═══ TODAY TAB ═══ -->
       <sc-if value="{{isTodayTab}}" hint-placeholder-val="{{true}}">
@@ -329,9 +386,10 @@
           <div style="{{priorityGridStyle}}">
             <div style="background:var(--surface);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;">
               <div style="display:flex;align-items:center;justify-content:space-between;">
-                <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Due Today</div>
+                <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Get Done</div>
                 <sc-if value="{{digest.dueCount}}"><div style="font-size:0.72rem;font-weight:700;color:var(--danger);">{{digest.dueCount}}</div></sc-if>
               </div>
+              <div style="font-size:1.05rem;font-weight:700;line-height:1.4;color:var(--text);">{{vibeSummary}}</div>
               <sc-if value="{{digest.sections.length}}" hint-placeholder-val="{{false}}">
                 <sc-for list="{{digest.sections}}" as="sec" hint-placeholder-count="2">
                   <div style="display:flex;flex-direction:column;gap:7px;">
@@ -340,7 +398,8 @@
                       <span style="font-size:0.74rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;">{{sec.label}}</span>
                     </div>
                     <sc-for list="{{sec.items}}" as="it" hint-placeholder-count="1">
-                      <div onclick="{{digest.goto}}" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:12px;cursor:pointer;">
+                      <div onclick="{{it.open}}" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:12px;cursor:pointer;">
+                        <button onclick="{{it.onToggle}}" aria-label="Mark done" class="tap-pad check-ring" style="width:18px;height:18px;border-radius:999px;border:2px solid var(--text2);background:none;flex-shrink:0;cursor:pointer;padding:0;"></button>
                         <span style="font-size:0.84rem;color:var(--text);flex:1;">{{it.text}}</span>
                         <sc-if value="{{it.overdue}}"><span style="font-size:0.63rem;font-weight:700;color:var(--danger);">OVERDUE</span></sc-if>
                       </div>
@@ -348,26 +407,34 @@
                   </div>
                 </sc-for>
               </sc-if>
-              <sc-if value="{{noDueToday}}" hint-placeholder-val="{{false}}">
-                <div style="font-size:0.83rem;color:var(--text2);">Nothing due today. Clean slate.</div>
+
+              <sc-if value="{{onPlate.length}}" hint-placeholder-val="{{false}}">
+                <div style="display:flex;flex-direction:column;gap:7px;padding-top:4px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">On your plate</div>
+                    <sc-if value="{{onPlateMore}}"><div style="font-size:0.72rem;font-weight:700;color:var(--text2);">+{{onPlateMore}}</div></sc-if>
+                  </div>
+                  <sc-for list="{{onPlate}}" as="it" hint-placeholder-count="2">
+                    <div onclick="{{it.open}}" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:12px;cursor:pointer;">
+                      <button onclick="{{it.onToggle}}" aria-label="Mark done" class="tap-pad check-ring" style="width:18px;height:18px;border-radius:999px;border:2px solid var(--text2);background:none;flex-shrink:0;cursor:pointer;padding:0;"></button>
+                      <span style="width:8px;height:8px;border-radius:999px;background:{{it.color}};flex-shrink:0;"></span>
+                      <span style="font-size:0.84rem;color:var(--text);flex:1;">{{it.text}}</span>
+                    </div>
+                  </sc-for>
+                </div>
               </sc-if>
 
               <sc-if value="{{recentlyCompleted.length}}" hint-placeholder-val="{{false}}">
                 <div style="display:flex;flex-direction:column;gap:7px;padding-top:4px;">
                   <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Recently Completed</div>
                   <sc-for list="{{recentlyCompleted}}" as="c" hint-placeholder-count="2">
-                    <div style="display:flex;align-items:center;gap:8px;">
+                    <div onclick="{{c.onToggle}}" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                       <span style="width:8px;height:8px;border-radius:999px;background:{{c.color}};flex-shrink:0;"></span>
                       <span style="font-size:0.84rem;color:var(--text2);text-decoration:line-through;flex:1;">{{c.text}}</span>
                     </div>
                   </sc-for>
                 </div>
               </sc-if>
-            </div>
-
-            <div style="background:var(--surface2);border-radius:22px;padding:22px;display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:110px;">
-              <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">The Vibe</div>
-              <div style="font-size:1.05rem;font-weight:700;line-height:1.4;color:var(--text);">{{vibeSummary}}</div>
             </div>
 
             <sc-if value="{{todayEntryCard}}">
@@ -379,7 +446,7 @@
 
             <sc-if value="{{featuredEntry}}">
               <div onclick="{{featuredEntry.open}}" style="{{featuredEntry.cardStyle}}">
-                <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Past Reflection (Throwback)</div>
+                <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Throwback · {{featuredEntry.label}}</div>
                 <div style="{{featuredEntry.textStyle}}">{{featuredEntry.text}}</div>
               </div>
             </sc-if>
@@ -392,24 +459,34 @@
       <sc-if value="{{isJournalTab}}" hint-placeholder-val="{{false}}">
         <div style="{{journalTabStyle}}">
 
-          <div style="{{journalWrapStyle}}">
-            <sc-for list="{{journalColumns}}" as="col" hint-placeholder-count="3">
-              <div style="{{col.style}}">
-                <sc-for list="{{col.items}}" as="e" hint-placeholder-count="2">
-                  <div onclick="{{e.open}}" style="{{e.cardStyle}}">
-                    <div style="{{e.bodyStyle}}">
-                      <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;text-align:{{e.dateAlign}};">{{e.dateLabel}}</div>
-                      <div style="{{e.textStyle}}">{{e.preview}}</div>
-                      <sc-if value="{{e.reflectionCount}}"><div style="font-size:0.7rem;color:var(--text2);font-weight:600;margin-top:10px;">{{e.reflectionLabel}}</div></sc-if>
+          <div style="display:flex;flex-direction:column;gap:22px;">
+            <sc-for list="{{journalMonthBlocks}}" as="month" hint-placeholder-count="1">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;padding:0 2px;">{{month.label}}</div>
+                <div style="{{journalWrapStyle}}">
+                  <sc-for list="{{month.columns}}" as="col" hint-placeholder-count="3">
+                    <div style="{{col.style}}">
+                      <sc-for list="{{col.items}}" as="e" hint-placeholder-count="2">
+                        <div onclick="{{e.open}}" style="{{e.cardStyle}}">
+                          <div style="{{e.bodyStyle}}">
+                            <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px;text-align:{{e.dateAlign}};">{{e.dateLabel}}</div>
+                            <div style="{{e.textStyle}}">{{e.preview}}</div>
+                            <sc-if value="{{e.reflectionCount}}"><div style="font-size:0.7rem;color:var(--text2);font-weight:600;margin-top:10px;">{{e.reflectionLabel}}</div></sc-if>
+                          </div>
+                        </div>
+                      </sc-for>
                     </div>
-                  </div>
-                </sc-for>
+                  </sc-for>
+                </div>
               </div>
             </sc-for>
           </div>
 
           <sc-if value="{{noEntries}}" hint-placeholder-val="{{false}}">
-            <div style="border-radius:20px;background:var(--surface2);padding:32px 20px;text-align:center;color:var(--text2);font-size:0.85rem;line-height:1.8;">No entries yet. Hold the button above to record your first voice note.</div>
+            <div style="border-radius:20px;background:var(--surface2);padding:32px 20px;text-align:center;color:var(--text2);font-size:0.85rem;line-height:1.8;display:flex;flex-direction:column;gap:14px;align-items:center;">
+              <div>No entries yet. Record a voice note, or write one.</div>
+              <button onclick="{{writeTodayEntry}}" style="background:var(--surface);border:none;color:var(--text);border-radius:14px;padding:10px 16px;font-weight:700;font-size:0.82rem;cursor:pointer;">Write today's entry</button>
+            </div>
           </sc-if>
         </div>
       </sc-if>
@@ -426,30 +503,34 @@
               </div>
             
               <div style="display:flex;gap:8px;">
-                <input type="text" value="{{sec.quickAddValue}}" onchange="{{sec.onQuickAddChange}}" onkeydown="{{sec.onQuickAddKeyDown}}" placeholder="Quick add…" style="flex:1;min-width:0;background:var(--surface);border:none;color:var(--text);border-radius:14px;padding:11px 15px;font-size:0.85rem;outline:none;">
+                <input type="text" data-quick-add="{{sec.listType}}" value="{{sec.quickAddValue}}" onchange="{{sec.onQuickAddChange}}" onkeydown="{{sec.onQuickAddKeyDown}}" placeholder="Quick add…" style="flex:1;min-width:0;background:var(--surface);border:none;color:var(--text);border-radius:14px;padding:11px 15px;font-size:0.85rem;outline:none;">
                 <button onclick="{{sec.onQuickAddSubmit}}" aria-label="Add item" style="width:42px;flex-shrink:0;background:var(--surface);border:none;border-radius:14px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                 </button>
+                <sc-if value="{{sec.notEmpty}}">
                 <button onclick="{{sec.onAddDetailed}}" aria-label="Add detailed item" style="width:42px;flex-shrink:0;background:var(--surface);border:none;border-radius:14px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
                 </button>
+                </sc-if>
               </div>
             
               <sc-if value="{{sec.empty}}"><div style="font-size:0.8rem;color:var(--text2);padding:2px 2px;">Nothing here yet.</div></sc-if>
             
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <sc-for list="{{sec.items}}" as="it" hint-placeholder-count="2">
-                  <div draggable="true" ondragstart="{{it.onDragStart}}" ondragover="{{it.onDragOver}}" ondrop="{{it.onDrop}}" style="display:flex;align-items:flex-start;gap:10px;background:var(--surface);border-radius:16px;padding:13px 14px;">
-                    <button onclick="{{it.onToggle}}" aria-label="Mark done" class="tap-pad" style="width:19px;height:19px;border-radius:999px;border:2px solid var(--text2);background:none;flex-shrink:0;cursor:pointer;margin-top:2px;padding:0;"></button>
+                  <div draggable="true" ondragstart="{{it.onDragStart}}" ondragover="{{it.onDragOver}}" ondrop="{{it.onDrop}}" onpointerdown="{{it.onPointerDown}}" onpointermove="{{it.onPointerMove}}" onpointerup="{{it.onPointerUp}}" onpointercancel="{{it.onPointerUp}}" style="display:flex;align-items:flex-start;gap:10px;background:var(--surface);border-radius:16px;padding:13px 14px;">
+                    <button onclick="{{it.onToggle}}" aria-label="Mark done" class="tap-pad check-ring" style="width:19px;height:19px;border-radius:999px;border:2px solid var(--text2);background:none;flex-shrink:0;cursor:pointer;margin-top:2px;padding:0;"></button>
                     <div style="flex:1;min-width:0;cursor:pointer;" onclick="{{it.onEdit}}">
-                      <div style="font-size:0.94rem;font-weight:700;color:var(--text);line-height:1.4;">{{it.primaryText}}</div>
+                      <div style="display:flex;align-items:flex-start;gap:8px;">
+                        <div style="flex:1;min-width:0;font-size:0.94rem;font-weight:700;color:var(--text);line-height:1.4;">{{it.primaryText}}</div>
+                        <sc-if value="{{it.hasMeta}}">
+                          <div style="flex-shrink:0;display:flex;gap:6px;align-items:flex-start;">
+                            <sc-if value="{{it.dueLabel}}"><span style="{{it.dueChipStyle}}">{{it.dueLabel}}</span></sc-if>
+                            <sc-if value="{{it.amountLabel}}"><span style="font-size:0.68rem;color:var(--text2);font-weight:600;background:var(--surface2);border-radius:999px;padding:3px 9px;">{{it.amountLabel}}</span></sc-if>
+                          </div>
+                        </sc-if>
+                      </div>
                       <sc-if value="{{it.secondaryText}}"><div style="font-size:0.8rem;color:var(--text2);line-height:1.4;margin-top:2px;">{{it.secondaryText}}</div></sc-if>
-                      <sc-if value="{{it.hasMeta}}">
-                        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-                          <sc-if value="{{it.dueLabel}}"><span style="{{it.dueChipStyle}}">{{it.dueLabel}}</span></sc-if>
-                          <sc-if value="{{it.amountLabel}}"><span style="font-size:0.68rem;color:var(--text2);font-weight:600;background:var(--surface2);border-radius:999px;padding:3px 9px;">{{it.amountLabel}}</span></sc-if>
-                        </div>
-                      </sc-if>
                     </div>
                   </div>
                 </sc-for>
@@ -484,8 +565,9 @@
         <div style="{{hintPillStyle}}">{{recHint}}</div>
       </sc-if>
       <sc-if value="{{lastAdded}}">
-        <div style="background:var(--text);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;box-shadow:0 8px 16px rgba(0,0,0,0.12);animation:slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);position:relative;margin-bottom:-4px;">
-          {{lastAddedText}}
+        <div onclick="{{reviewLastAdded}}" style="background:var(--text);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:0.82rem;font-weight:600;box-shadow:0 8px 16px rgba(0,0,0,0.12);animation:slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);position:relative;margin-bottom:-4px;display:flex;align-items:center;gap:12px;pointer-events:auto;cursor:{{lastAddedCursor}};">
+          <span>{{lastAddedText}}</span>
+          <button onclick="{{undoLastAdded}}" style="background:none;border:none;color:inherit;font-weight:800;font-size:0.78rem;cursor:pointer;padding:0;letter-spacing:0.04em;text-transform:uppercase;">Undo</button>
           <div style="position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid var(--text);"></div>
         </div>
       </sc-if>
@@ -531,19 +613,127 @@
 function loadJSON(key, fallback){ try{ const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; }catch(e){ return fallback; } }
 function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+const VOICE_DB = 'journal-zero-voice';
+const VOICE_STORE = 'queue';
+const VOICE_SYNC_TAG = 'voice-queue-sync';
+
+function openVoiceDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(VOICE_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(VOICE_STORE)) db.createObjectStore(VOICE_STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function voiceQueueAdd(blob, introspectKey) {
+  return openVoiceDb().then((db) => new Promise((resolve, reject) => {
+    const item = {
+      id: uid(),
+      mime: blob.type || 'audio/webm',
+      createdAt: new Date().toISOString(),
+      introspectKey: introspectKey || null,
+      blob,
+    };
+    const tx = db.transaction(VOICE_STORE, 'readwrite');
+    tx.objectStore(VOICE_STORE).put(item);
+    tx.oncomplete = () => { db.close(); resolve(item.id); };
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
+function voiceQueueAll() {
+  return openVoiceDb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction(VOICE_STORE, 'readonly');
+    const req = tx.objectStore(VOICE_STORE).getAll();
+    req.onsuccess = () => { db.close(); resolve(req.result || []); };
+    req.onerror = () => reject(req.error);
+  }));
+}
+
+function voiceQueueRemove(id) {
+  return openVoiceDb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction(VOICE_STORE, 'readwrite');
+    tx.objectStore(VOICE_STORE).delete(id);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
+function voiceQueueCount() {
+  return voiceQueueAll().then((items) => items.length);
+}
 function todayKeyFn(){ const n = new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
 const MOOD_BG_LIGHT = { blue:'#eef1fb', red:'#fbeaea', green:'#eaf6ee', yellow:'#fdf6e3' };
 const MOOD_BG_DARK  = { blue:'#242a3d', red:'#332423', green:'#22302a', yellow:'#332c1e' };
 const MOOD_STRIP = { blue:'#5b7fdb', red:'#d4685c', green:'#4fa66b', yellow:'#d1a13a' };
 const RECORD_ACCENT = { light:'#b5613a', dark:'#d99169' };
 const CURRENCIES = [{code:'USD',symbol:'$'},{code:'EUR',symbol:'\u20ac'},{code:'GBP',symbol:'\u00a3'},{code:'INR',symbol:'\u20b9'},{code:'JPY',symbol:'\u00a5'}];
+const DEFAULT_SCHEME = {
+  light: { bg:'#fdfaf8', surface:'#ffffff', surface2:'#f5f0eb', text:'#241f1a', text2:'#6b6259', accent:'#b5613a', danger:'#c9483d' },
+  dark: { bg:'#161310', surface:'#211c17', surface2:'#2a251d', text:'#f2ede4', text2:'#a39a8c', accent:'#d99169', danger:'#e2685a' },
+};
+function parseHexColor(raw){
+  const h = String(raw || '').trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(h)) return h.toLowerCase();
+  return '';
+}
+function hexToRgb(hex){
+  const h = parseHexColor(hex).slice(1);
+  if (!h) return null;
+  return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+}
+function rgbToHex(rgb){
+  const to = (n) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0');
+  return '#' + to(rgb.r) + to(rgb.g) + to(rgb.b);
+}
+function mixRgb(a, b, t){
+  return {
+    r: Math.round(a.r + (b.r - a.r) * t),
+    g: Math.round(a.g + (b.g - a.g) * t),
+    b: Math.round(a.b + (b.b - a.b) * t),
+  };
+}
+function relLuma(rgb){ return (0.2126*rgb.r + 0.7152*rgb.g + 0.0722*rgb.b) / 255; }
+function derivePageScheme(seedHex){
+  const seed = hexToRgb(seedHex);
+  if (!seed) return null;
+  const white = { r:255, g:255, b:255 };
+  const black = { r:0, g:0, b:0 };
+  const lightAccent = relLuma(seed) > 0.72 ? mixRgb(seed, black, 0.35) : seed;
+  const darkAccent = relLuma(seed) < 0.45 ? mixRgb(seed, white, 0.32) : mixRgb(seed, white, 0.12);
+  return {
+    light: {
+      bg: rgbToHex(mixRgb(white, seed, 0.22)),
+      surface: rgbToHex(mixRgb(white, seed, 0.08)),
+      surface2: rgbToHex(mixRgb(white, seed, 0.28)),
+      text: rgbToHex(mixRgb(black, seed, 0.18)),
+      text2: rgbToHex(mixRgb({ r:90, g:84, b:78 }, seed, 0.28)),
+      accent: rgbToHex(lightAccent),
+      danger: '#c9483d',
+    },
+    dark: {
+      bg: rgbToHex(mixRgb(black, seed, 0.22)),
+      surface: rgbToHex(mixRgb(black, seed, 0.34)),
+      surface2: rgbToHex(mixRgb(black, seed, 0.46)),
+      text: rgbToHex(mixRgb(white, seed, 0.1)),
+      text2: rgbToHex(mixRgb({ r:168, g:160, b:148 }, seed, 0.22)),
+      accent: rgbToHex(darkAccent),
+      danger: '#e2685a',
+    },
+  };
+}
 
 class Component extends DCLogic {
   state = {
     theme: (typeof localStorage!=='undefined' && localStorage.getItem('planner_theme')) || 'light',
     tab: 'today',
     apiKey: (typeof localStorage!=='undefined' && localStorage.getItem('planner_api_key')) || '',
-    setupOpen: (typeof localStorage!=='undefined' && !localStorage.getItem('planner_api_key')),
+    setupOpen: false,
     journal: loadJSON('planner_journal', {}),
     lists: loadJSON('planner_lists', {todo:[], person:[], payment:[]}),
     flowState: 'idle',
@@ -568,9 +758,166 @@ class Component extends DCLogic {
     widgetX: (typeof window !== 'undefined') ? window.innerWidth / 2 : 240,
     widgetY: (typeof window !== 'undefined') ? window.innerHeight - 80 : 800,
     hintToggle: false,
+    clockTick: 0,
+    schemeColor: (typeof localStorage!=='undefined' && parseHexColor(localStorage.getItem('planner_scheme_color'))) || '',
+    voiceQueueCount: 0,
+    isOffline: false,
+  };
+
+  isTypingTarget(el) {
+    if (!el || !el.tagName) return false;
+    const tag = el.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+    return !!el.isContentEditable;
+  }
+  countDueBadge() {
+    const todayStr = todayKeyFn();
+    let n = 0;
+    ['todo', 'person', 'payment'].forEach(t => (this.state.lists[t] || []).forEach(it => {
+      if (!it.done && it.due && it.due <= todayStr) n++;
+    }));
+    return n;
+  }
+  syncAppBadge() {
+    if (typeof navigator === 'undefined' || !('setAppBadge' in navigator)) return;
+    const n = this.countDueBadge();
+    if (n > 0) navigator.setAppBadge(n).catch(function () {});
+    else if ('clearAppBadge' in navigator) navigator.clearAppBadge().catch(function () {});
+  }
+  acquireWakeLock = async () => {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      if (this._wakeLock) return;
+      this._wakeLock = await navigator.wakeLock.request('screen');
+      this._wakeLock.addEventListener('release', () => { this._wakeLock = null; });
+    } catch (e) {}
+  };
+  releaseWakeLock = () => {
+    if (!this._wakeLock) return;
+    this._wakeLock.release().catch(function () {});
+    this._wakeLock = null;
+  };
+  toggleVoiceRecord = () => {
+    if (this.state.flowState === 'proc') return;
+    if (this.state.flowState === 'rec') {
+      this._holding = false;
+      this.stopRec(true);
+    } else if (this.state.flowState === 'idle') {
+      this._holding = true;
+      this.startRec();
+    }
+  };
+  focusQuickAdd = () => {
+    this.switchTab('lists');
+    requestAnimationFrame(() => {
+      const el = document.querySelector('[data-quick-add="todo"]');
+      if (el) el.focus();
+    });
+  };
+  handleDeepLink = () => {
+    if (typeof window === 'undefined' || !window.location.search) return;
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    const action = params.get('action');
+    const title = params.get('title');
+    const text = params.get('text');
+    const url = params.get('url');
+    if (tab === 'today' || tab === 'journal' || tab === 'lists') this.switchTab(tab);
+    if (action === 'record') setTimeout(() => this.toggleVoiceRecord(), 300);
+    if (title || text || url) this.handleSharedContent({ title, text, url });
+    if (tab || action || title || text || url) {
+      const clean = new URL(window.location.href);
+      clean.search = '';
+      window.history.replaceState({}, '', clean.pathname + clean.hash);
+    }
+  };
+  handleSharedContent = ({ title, text, url }) => {
+    const parts = [];
+    if (title && title.trim()) parts.push(title.trim());
+    if (text && text.trim()) parts.push(text.trim());
+    if (url && url.trim() && url.trim() !== (text || '').trim()) parts.push(url.trim());
+    const content = parts.join('\n').trim();
+    if (!content) return;
+    const key = todayKeyFn();
+    const journal = { ...this.state.journal };
+    const line = '• ' + content.split('\n').join('\n• ');
+    const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], dumps: [], createdAt: new Date().toISOString() };
+    existing.content = existing.content ? existing.content + '\n' + line : line;
+    existing.updatedAt = new Date().toISOString();
+    journal[key] = existing;
+    saveJSON('planner_journal', journal);
+    this.setState({ journal });
+    this.switchTab('journal');
+  };
+  isOffline = () => typeof navigator !== 'undefined' && !navigator.onLine;
+  isNetworkError = (e) => {
+    if (this.isOffline()) return true;
+    const msg = String((e && e.message) || e || '').toLowerCase();
+    return msg.includes('failed to fetch') || msg.includes('network') || msg.includes('load failed') || msg.includes('fetch');
+  };
+  refreshVoiceQueueCount = async () => {
+    if (typeof indexedDB === 'undefined') return;
+    try {
+      const count = await voiceQueueCount();
+      this.setState({ voiceQueueCount: count });
+    } catch (e) {}
+  };
+  requestVoiceQueueSync = async () => {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg.sync && reg.sync.register) await reg.sync.register(VOICE_SYNC_TAG);
+    } catch (e) {}
+  };
+  queueVoiceBlob = async (blob) => {
+    try {
+      await voiceQueueAdd(blob, this.state.introspectKey);
+      await this.requestVoiceQueueSync();
+      const count = await voiceQueueCount();
+      this.setState({ flowState: 'idle', voiceQueueCount: count });
+    } catch (e) {
+      this.showOrbErr('Could not save offline note.');
+    }
+  };
+  flushVoiceQueue = async () => {
+    if (this._flushingQueue || this.isOffline() || !this.state.apiKey || typeof indexedDB === 'undefined') return;
+    this._flushingQueue = true;
+    try {
+      const items = await voiceQueueAll();
+      items.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      for (const item of items) {
+        if (this.isOffline()) break;
+        const prevIntrospect = this.state.introspectKey;
+        if (item.introspectKey) this.setState({ introspectKey: item.introspectKey });
+        try {
+          await this.processBlob(item.blob, { fromQueue: true });
+          await voiceQueueRemove(item.id);
+        } catch (e) {
+          if (item.introspectKey) this.setState({ introspectKey: prevIntrospect });
+          if (this.isNetworkError(e)) break;
+          await voiceQueueRemove(item.id);
+          break;
+        }
+        if (item.introspectKey) this.setState({ introspectKey: prevIntrospect });
+      }
+      await this.refreshVoiceQueueCount();
+    } finally {
+      this._flushingQueue = false;
+    }
+  };
+  handleRecordingBlob = async (blob) => {
+    if (this.isOffline()) {
+      await this.queueVoiceBlob(blob);
+      return;
+    }
+    await this.processBlob(blob);
   };
 
   componentDidMount(){
+    this.handleDeepLink();
+    this.syncAppBadge();
+    this.setState({ isOffline: this.isOffline() });
+    this.refreshVoiceQueueCount().then(() => { if (!this.isOffline()) this.flushVoiceQueue(); });
     this.checkDailyDigest();
     if (typeof localStorage !== 'undefined' && !localStorage.getItem('planner_seeded')) {
       localStorage.setItem('planner_seeded', '1');
@@ -587,29 +934,115 @@ class Component extends DCLogic {
     this._onResize = () => this.setState({ viewportWidth: window.innerWidth });
     if (typeof window !== 'undefined') window.addEventListener('resize', this._onResize);
     this._onGlobalKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); this.toggleSearch(); }
-      else if (e.key === 'Escape' && this.state.searchOpen) this.closeSearch();
+      const mod = e.metaKey || e.ctrlKey;
+      const key = e.key;
+      if (mod && (key === 'k' || key === 'K')) { e.preventDefault(); this.toggleSearch(); return; }
+      if (key === 'Escape') {
+        if (this.state.searchOpen) this.closeSearch();
+        else if (this.state.setupOpen) this.closeSetup();
+        else if (this.state.itemEditor) this.closeItemEditor();
+        else if (this.state.journalModalKey) this.closeJournalModal();
+        return;
+      }
+      if (this.isTypingTarget(e.target)) return;
+      if ((mod && key === '1') || key === '1') { e.preventDefault(); this.switchTab('today'); return; }
+      if ((mod && key === '2') || key === '2') { e.preventDefault(); this.switchTab('journal'); return; }
+      if ((mod && key === '3') || key === '3') { e.preventDefault(); this.switchTab('lists'); return; }
+      if ((mod && (key === 'n' || key === 'N')) || key === 'n' || key === 'N') { e.preventDefault(); this.writeTodayEntry(); return; }
+      if (key === '/') { e.preventDefault(); this.focusQuickAdd(); return; }
+      if ((mod && e.shiftKey && (key === 'r' || key === 'R')) || (!mod && (key === 'r' || key === 'R'))) {
+        e.preventDefault();
+        this.toggleVoiceRecord();
+      }
     };
     if (typeof window !== 'undefined') window.addEventListener('keydown', this._onGlobalKeyDown);
+    if (typeof document !== 'undefined') {
+      this._onVis = () => { if (!document.hidden) this.tickClock(); };
+      document.addEventListener('visibilitychange', this._onVis);
+      this._onWakeLockVis = () => {
+        if (!document.hidden && this.state.flowState === 'rec') this.acquireWakeLock();
+        if (!document.hidden && !this.isOffline()) this.flushVoiceQueue();
+      };
+      document.addEventListener('visibilitychange', this._onWakeLockVis);
+    }
+    if (typeof window !== 'undefined') {
+      this._onOnline = () => { this.setState({ isOffline: false }); this.flushVoiceQueue(); };
+      this._onOffline = () => this.setState({ isOffline: true });
+      window.addEventListener('online', this._onOnline);
+      window.addEventListener('offline', this._onOffline);
+      if ('serviceWorker' in navigator) {
+        this._onSwMessage = (e) => { if (e.data && e.data.type === 'flush-voice-queue') this.flushVoiceQueue(); };
+        navigator.serviceWorker.addEventListener('message', this._onSwMessage);
+      }
+    }
+    this._dayKey = todayKeyFn();
+    this._clock = setInterval(() => this.tickClock(), 30000);
     if (typeof window !== 'undefined' && window.matchMedia) {
       this._mq = window.matchMedia('(prefers-color-scheme: dark)');
       this._onMqChange = () => { if (this.state.theme === 'auto') this.forceUpdate(); };
       if (this._mq.addEventListener) this._mq.addEventListener('change', this._onMqChange);
     }
   }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.lists !== this.state.lists) this.syncAppBadge();
+  }
   componentWillUnmount(){
     if(this._timer) clearInterval(this._timer);
     if(this._hintInterval) clearInterval(this._hintInterval);
+    if(this._clock) clearInterval(this._clock);
+    this.releaseWakeLock();
     this.stopStreamTracks();
     if (typeof window !== 'undefined' && this._onResize) window.removeEventListener('resize', this._onResize);
     if (typeof window !== 'undefined' && this._onGlobalKeyDown) window.removeEventListener('keydown', this._onGlobalKeyDown);
+    if (typeof window !== 'undefined' && this._onOnline) window.removeEventListener('online', this._onOnline);
+    if (typeof window !== 'undefined' && this._onOffline) window.removeEventListener('offline', this._onOffline);
+    if (typeof navigator !== 'undefined' && this._onSwMessage) navigator.serviceWorker.removeEventListener('message', this._onSwMessage);
+    if (typeof document !== 'undefined' && this._onVis) document.removeEventListener('visibilitychange', this._onVis);
+    if (typeof document !== 'undefined' && this._onWakeLockVis) document.removeEventListener('visibilitychange', this._onWakeLockVis);
     if (this._mq && this._mq.removeEventListener) this._mq.removeEventListener('change', this._onMqChange);
   }
 
 
 
   systemPrefersDark(){ return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  prefersReducedMotion(){ return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  tickClock(){
+    const k = todayKeyFn();
+    if (k !== this._dayKey) {
+      this._dayKey = k;
+      this.setState({ clockTick: Date.now() });
+    }
+  }
   setThemeMode = (mode) => { localStorage.setItem('planner_theme', mode); this.setState({ theme: mode }); };
+  syncPageTheme = (pal, isDark, cc) => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+    root.style.backgroundColor = pal.bg;
+    if (document.body) document.body.style.backgroundColor = pal.bg;
+    root.style.setProperty('--bg', pal.bg);
+    root.style.setProperty('--surface', pal.surface);
+    root.style.setProperty('--surface2', pal.surface2);
+    root.style.setProperty('--text', pal.text);
+    root.style.setProperty('--text2', pal.text2);
+    root.style.setProperty('--accent', pal.accent);
+    root.style.setProperty('--danger', pal.danger);
+    if (cc && cc.length >= 3) {
+      root.style.setProperty('--accent-todo', cc[0]);
+      root.style.setProperty('--accent-person', cc[1]);
+      root.style.setProperty('--accent-payment', cc[2]);
+    }
+  };
+  onSchemeColorChange = (e) => {
+    const hex = parseHexColor(e.target.value);
+    if (!hex) return;
+    localStorage.setItem('planner_scheme_color', hex);
+    this.setState({ schemeColor: hex });
+  };
+  resetSchemeColor = () => {
+    localStorage.removeItem('planner_scheme_color');
+    this.setState({ schemeColor: '' });
+  };
   setCurrency = (code) => { localStorage.setItem('planner_currency', code); this.setState({ currency: code }); };
   currencySymbol(){ const c = CURRENCIES.find(x => x.code === this.state.currency) || CURRENCIES.find(x => x.code === 'INR'); return c.symbol; }
   stopProp = (e) => { if(e && e.stopPropagation) e.stopPropagation(); };
@@ -634,7 +1067,7 @@ class Component extends DCLogic {
     const k = (this.state.apiKeyDraft || '').trim();
     if (!k || !k.startsWith('gsk_')) { this.setState({ errHome: 'Groq keys start with gsk_ — check yours.' }); return; }
     localStorage.setItem('planner_api_key', k);
-    this.setState({ apiKey: k, errHome: '', apiKeyDraft: '' });
+    this.setState({ apiKey: k, errHome: '', apiKeyDraft: '', setupOpen: false }, () => this.flushVoiceQueue());
   };
 
   exportData = () => {
@@ -642,6 +1075,7 @@ class Component extends DCLogic {
       version: 1, exportedAt: new Date().toISOString(),
       journal: this.state.journal, lists: this.state.lists,
       currency: this.state.currency, theme: this.state.theme,
+      schemeColor: this.state.schemeColor || '',
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -655,6 +1089,7 @@ class Component extends DCLogic {
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
     if (!file) return;
+    if (typeof window !== 'undefined' && window.confirm && !window.confirm('Replace journal and lists on this device with this backup?')) return;
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -667,10 +1102,17 @@ class Component extends DCLogic {
         saveJSON('planner_lists', lists);
         if (data.currency) localStorage.setItem('planner_currency', data.currency);
         if (data.theme) localStorage.setItem('planner_theme', data.theme);
+        let schemeColor = this.state.schemeColor;
+        if (Object.prototype.hasOwnProperty.call(data, 'schemeColor')) {
+          schemeColor = parseHexColor(data.schemeColor);
+          if (schemeColor) localStorage.setItem('planner_scheme_color', schemeColor);
+          else localStorage.removeItem('planner_scheme_color');
+        }
         this.setState({
           journal, lists,
           currency: data.currency || this.state.currency,
           theme: data.theme || this.state.theme,
+          schemeColor,
           errHome: '',
         });
       } catch (err) {
@@ -681,6 +1123,7 @@ class Component extends DCLogic {
   };
 
   showOrbErr = (msg) => {
+    this.releaseWakeLock();
     this.setState({ flowState: 'idle', orbErr: msg });
     if (this._orbErrTimer) clearTimeout(this._orbErrTimer);
     this._orbErrTimer = setTimeout(() => this.setState({ orbErr: '' }), 2500);
@@ -772,15 +1215,17 @@ class Component extends DCLogic {
       // this.stopStreamTracks(); // Keep stream alive to avoid repeated permission prompts
       if (this._chunks.length > 0) {
         const blob = new Blob(this._chunks, { type: this._rec.mimeType || 'audio/webm' });
-        await this.processBlob(blob);
+        await this.handleRecordingBlob(blob);
       }
     });
     this._rec.start(500);
     this.setState({ flowState: 'rec', recSecs: 0 });
     this._timer = setInterval(() => this.setState(s => ({ recSecs: s.recSecs + 1 })), 1000);
+    this.acquireWakeLock();
   };
 
   stopRec = (process = true) => {
+    this.releaseWakeLock();
     if (this._timer) { clearInterval(this._timer); this._timer = null; }
     if (this._rec && this._rec.state !== 'inactive') { try { this._rec.stop(); } catch (e) {} }
     else { /* this.stopStreamTracks(); */ if (this.state.flowState === 'rec' && !process) this.setState({ flowState: 'idle' }); }
@@ -790,16 +1235,26 @@ class Component extends DCLogic {
     if (this._stream) { this._stream.getTracks().forEach(t => t.stop()); this._stream = null; }
   };
 
-  processBlob = async (blob) => {
+  processBlob = async (blob, opts = {}) => {
+    if (!opts.fromQueue && this.isOffline()) {
+      await this.queueVoiceBlob(blob);
+      return;
+    }
     this.setState({ flowState: 'proc', procTitle: 'Transcribing…', procStep: 'Sending audio to Whisper' });
     let transcript;
     try { transcript = await this.whisper(blob); }
-    catch (e) { this.showOrbErr('Transcription failed: ' + this.friendlyErr(e)); return; }
+    catch (e) {
+      if (!opts.fromQueue && this.isNetworkError(e)) { await this.queueVoiceBlob(blob); return; }
+      this.showOrbErr('Transcription failed: ' + this.friendlyErr(e)); return;
+    }
     if (!transcript || transcript.trim().length < 4) { this.showOrbErr('No speech detected. Try again.'); return; }
     this.setState({ procTitle: 'Organizing…', procStep: 'Extracting priorities' });
     let result;
     try { result = await this.analyze(transcript); }
-    catch (e) { this.showOrbErr('Analysis failed: ' + this.friendlyErr(e)); return; }
+    catch (e) {
+      if (!opts.fromQueue && this.isNetworkError(e)) { await this.queueVoiceBlob(blob); return; }
+      this.showOrbErr('Analysis failed: ' + this.friendlyErr(e)); return;
+    }
     
     // Check if result is just empty or a placeholder
     if (!result.bullets || result.bullets.length === 0 || (result.bullets.length === 1 && result.bullets[0] === 'short bullet')) {
@@ -834,7 +1289,7 @@ class Component extends DCLogic {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + this.state.apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'openai/gpt-oss-20b',
         messages: [{ role: 'system', content: sys }, { role: 'user', content: transcript }],
         temperature: 0.3, max_tokens: 900,
         response_format: { type: 'json_object' },
@@ -861,7 +1316,7 @@ class Component extends DCLogic {
 
     if (this.state.introspectKey) {
       const key = this.state.introspectKey;
-      const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], createdAt: new Date().toISOString() };
+      const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], dumps: [], createdAt: new Date().toISOString() };
       if (!existing.introspections) existing.introspections = [];
       existing.introspections.push({ content: newLines, mood: result.mood, created: new Date().toISOString() });
       journal[key] = existing;
@@ -869,7 +1324,9 @@ class Component extends DCLogic {
     } else {
       const key = todayKeyFn();
       const isNewEntry = !journal[key];
-      const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], createdAt: new Date().toISOString() };
+      const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], dumps: [], createdAt: new Date().toISOString() };
+      if (!existing.dumps) existing.dumps = [];
+      existing.dumps.push({ at: new Date().toISOString(), content: newLines, mood: result.mood });
       existing.content = existing.content ? existing.content + '\n' + newLines : newLines;
       if (isNewEntry) existing.mood = result.mood;
       existing.updatedAt = new Date().toISOString();
@@ -884,7 +1341,7 @@ class Component extends DCLogic {
     saveJSON('planner_lists', lists);
 
     clearTimeout(this._toastTimer);
-    this._toastTimer = setTimeout(() => this.setState({ lastAdded: null }), 2000);
+    this._toastTimer = setTimeout(() => this.setState({ lastAdded: null }), 5000);
     this.setState({ journal, lists, flowState: 'idle', introspectKey: null, lastAdded: { toastPrefix, tasks: result.tasks, prevJournal, prevLists } });
   };
 
@@ -947,12 +1404,17 @@ class Component extends DCLogic {
   onItemDrop = (listType, targetId) => {
     const draggedId = this._dragId;
     if (this._dragListType !== listType || draggedId == null || draggedId === targetId) { this._dragId = null; return; }
+    this.reorderActiveItem(listType, draggedId, targetId);
+    this._dragId = null;
+  };
+  reorderActiveItem = (listType, draggedId, targetId) => {
+    if (draggedId == null || draggedId === targetId) return;
     const full = this.state.lists[listType];
     const byId = new Map(full.map(it => [it.id, it]));
     const activeIds = full.filter(it => !it.done).map(it => it.id);
     const from = activeIds.indexOf(draggedId);
     const to = activeIds.indexOf(targetId);
-    if (from === -1 || to === -1) { this._dragId = null; return; }
+    if (from === -1 || to === -1) return;
     activeIds.splice(from, 1);
     activeIds.splice(to, 0, draggedId);
     let cursor = 0;
@@ -960,7 +1422,56 @@ class Component extends DCLogic {
     const lists = { ...this.state.lists, [listType]: arr };
     saveJSON('planner_lists', lists);
     this.setState({ lists });
-    this._dragId = null;
+  };
+  onListItemPointerDown = (listType, id, e) => {
+    if (e.pointerType === 'mouse') return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'BUTTON' || (e.target && e.target.closest && e.target.closest('button'))) return;
+    this._listDrag = { listType, id, y: e.clientY, started: false };
+    if (e.currentTarget && e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  onListItemPointerMove = (listType, id, e) => {
+    const d = this._listDrag;
+    if (!d || d.listType !== listType || d.id !== id) return;
+    const dy = e.clientY - d.y;
+    if (!d.started && Math.abs(dy) < 14) return;
+    d.started = true;
+    if (e.cancelable) e.preventDefault();
+    if (Math.abs(dy) < 44) return;
+    const active = (this.state.lists[listType] || []).filter(it => !it.done);
+    const idx = active.findIndex(it => it.id === id);
+    if (idx < 0) return;
+    const next = idx + (dy > 0 ? 1 : -1);
+    if (next < 0 || next >= active.length) return;
+    d.y = e.clientY;
+    this.reorderActiveItem(listType, id, active[next].id);
+  };
+  onListItemPointerUp = (listType, id, e) => {
+    const d = this._listDrag;
+    if (d && d.started) this._skipListEdit = true;
+    this._listDrag = null;
+    if (e.currentTarget && e.currentTarget.releasePointerCapture) {
+      try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+  };
+
+  onMainPointerDown = (e) => {
+    if (e.pointerType === 'mouse') return;
+    if (this.state.searchOpen || this.state.setupOpen || this.state.itemEditor || this.state.journalModalKey) return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'SELECT') return;
+    this._tabSwipe = { x: e.clientX, y: e.clientY };
+  };
+  onMainPointerUp = (e) => {
+    const s = this._tabSwipe;
+    this._tabSwipe = null;
+    if (!s) return;
+    const dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+    const order = ['today', 'journal', 'lists'];
+    const i = order.indexOf(this.state.tab);
+    if (dx < 0 && i < 2) this.switchTab(order[i + 1]);
+    else if (dx > 0 && i > 0) this.switchTab(order[i - 1]);
   };
 
   toggleCompletedCollapse = (listType) => this.setState(s => ({ collapsedCompleted: { ...s.collapsedCompleted, [listType]: !s.collapsedCompleted[listType] } }));
@@ -969,13 +1480,52 @@ class Component extends DCLogic {
     const val = (this.state.quickAdd[listType] || '').trim();
     if (!val) return;
     const lists = { ...this.state.lists };
-    lists[listType] = [{ id: uid(), text: val, due: null, amount: null, contact: null, done: false, createdAt: new Date().toISOString() }, ...lists[listType]];
+    let text = val, contact = null;
+    if (listType === 'person') {
+      const parts = val.split(/\s+[—–-]\s+/);
+      contact = parts[0].trim();
+      text = parts.slice(1).join(' — ').trim();
+    }
+    lists[listType] = [{ id: uid(), text, due: null, amount: null, contact, done: false, createdAt: new Date().toISOString() }, ...lists[listType]];
     saveJSON('planner_lists', lists);
     this.setState({ lists, quickAdd: { ...this.state.quickAdd, [listType]: '' } });
   };
 
-  openJournalModal = (key) => { const e = this.state.journal[key]; if (!e) return; this.setState({ journalModalKey: key, journalModalText: e.content, journalModalEditing: false }); };
-  closeJournalModal = () => { if (this.state.introspectKey) this.cancelIntrospect(); this.setState({ journalModalKey: null, journalModalText: '', journalModalEditing: false }); };
+  openJournalModal = (key) => { const e = this.state.journal[key]; if (!e) return; this.setState({ journalModalKey: key, journalModalText: e.content, journalModalEditing: false, introspectKey: null }); };
+  writeTodayEntry = () => {
+    const key = todayKeyFn();
+    const journal = { ...this.state.journal };
+    if (!journal[key]) {
+      journal[key] = { content: '', mood: 'yellow', introspections: [], dumps: [], createdAt: new Date().toISOString() };
+      saveJSON('planner_journal', journal);
+    }
+    const empty = !(journal[key].content || '').trim();
+    this.setState({ journal, tab: 'journal', searchOpen: false, journalModalKey: key, journalModalText: journal[key].content || '', journalModalEditing: empty, introspectKey: null });
+  };
+  gotoJournalPrev = () => {
+    const keys = Object.keys(this.state.journal).sort();
+    const i = keys.indexOf(this.state.journalModalKey);
+    if (i > 0) this.openJournalModal(keys[i - 1]);
+  };
+  gotoJournalNext = () => {
+    const keys = Object.keys(this.state.journal).sort();
+    const i = keys.indexOf(this.state.journalModalKey);
+    if (i >= 0 && i < keys.length - 1) this.openJournalModal(keys[i + 1]);
+  };
+  closeJournalModal = () => {
+    if (this.state.introspectKey) this.cancelIntrospect();
+    const key = this.state.journalModalKey;
+    const e = key ? this.state.journal[key] : null;
+    const empty = e && !(e.content || '').trim() && !(e.dumps || []).some(d => (d.content || '').trim()) && !(e.introspections || []).length;
+    if (empty) {
+      const journal = { ...this.state.journal };
+      delete journal[key];
+      saveJSON('planner_journal', journal);
+      this.setState({ journal, journalModalKey: null, journalModalText: '', journalModalEditing: false });
+      return;
+    }
+    this.setState({ journalModalKey: null, journalModalText: '', journalModalEditing: false });
+  };
   closeJournalModalBackdrop = (e) => { if (e.target === e.currentTarget) this.closeJournalModal(); };
   onJournalModalTextChange = (e) => this.setState({ journalModalText: e.target.value });
   startJournalEdit = () => this.setState({ journalModalEditing: true });
@@ -987,7 +1537,7 @@ class Component extends DCLogic {
   saveJournalModal = () => {
     const key = this.state.journalModalKey; if (!key) return;
     const journal = { ...this.state.journal };
-    journal[key] = { ...journal[key], content: this.state.journalModalText, updatedAt: new Date().toISOString() };
+    journal[key] = { ...journal[key], content: this.state.journalModalText, dumps: [{ at: new Date().toISOString(), content: this.state.journalModalText, mood: journal[key].mood || 'yellow' }], updatedAt: new Date().toISOString() };
     saveJSON('planner_journal', journal);
     this.setState({ journal, journalModalEditing: false });
   };
@@ -1050,10 +1600,13 @@ class Component extends DCLogic {
         amountLabel: it.amount ? (sym + String(it.amount).replace(/^[^0-9]*/, '')) : '',
         hasMeta: !!(it.due || it.amount),
         onToggle: () => this.toggleItemDone(listType, it.id),
-        onEdit: () => this.openItemEditor(listType, it.id),
+        onEdit: () => { if (this._skipListEdit) { this._skipListEdit = false; return; } this.openItemEditor(listType, it.id); },
         onDragStart: draggable ? () => this.onItemDragStart(listType, it.id) : undefined,
         onDragOver: draggable ? (e) => this.onItemDragOver(e) : undefined,
         onDrop: draggable ? () => this.onItemDrop(listType, it.id) : undefined,
+        onPointerDown: draggable ? (e) => this.onListItemPointerDown(listType, it.id, e) : undefined,
+        onPointerMove: draggable ? (e) => this.onListItemPointerMove(listType, it.id, e) : undefined,
+        onPointerUp: draggable ? (e) => this.onListItemPointerUp(listType, it.id, e) : undefined,
       };
     };
     const sortedActive = [...active].sort((a, b) => {
@@ -1075,6 +1628,7 @@ class Component extends DCLogic {
       }
     }
     return {
+      listType,
       title, accentColor: 'var(' + accentVar + ')', countDisplay,
       items: sortedActive.map((it) => mapItem(it, true)),
       doneItems: done.map((it) => mapItem(it, false)),
@@ -1088,6 +1642,7 @@ class Component extends DCLogic {
       onQuickAddSubmit: () => this.submitQuickAdd(listType),
       onAddDetailed: () => this.openItemEditor(listType, null),
       empty: active.length === 0,
+      notEmpty: active.length > 0,
     };
   }
 
@@ -1106,7 +1661,11 @@ class Component extends DCLogic {
     const LABELS = { todo:'To-Dos', person:'People', payment:'Payments' };
     const sections = [];
     ['todo','person','payment'].forEach(t => {
-      const items = (lists[t]||[]).filter(it => !it.done && it.due && it.due <= todayStr).map(it => ({ id: it.id, text: displayText(t, it), overdue: it.due < todayStr }));
+      const items = (lists[t]||[]).filter(it => !it.done && it.due && it.due <= todayStr).map(it => ({
+        id: it.id, listType: t, text: displayText(t, it), overdue: it.due < todayStr,
+        open: () => this.openItemEditor(t, it.id),
+        onToggle: (e) => { this.stopProp(e); this.toggleItemDone(t, it.id); },
+      }));
       if (items.length) sections.push({ key: t, label: LABELS[t], color: TYPE_COLOR[t], items });
     });
     return { dueCount: due.length, due, sections, goto: () => this.switchTab('lists') };
@@ -1119,19 +1678,44 @@ class Component extends DCLogic {
     const all = [];
     ['todo','person','payment'].forEach(t => (lists[t]||[]).filter(it => it.done).forEach(it => {
       const text = (t === 'person' && it.contact) ? (it.contact + (it.text ? ' — ' + it.text : '')) : it.text;
-      all.push({ text, color: TYPE_COLOR[t], completedAt: it.completedAt || it.createdAt || '' });
+      all.push({
+        id: it.id, listType: t, text, color: TYPE_COLOR[t], completedAt: it.completedAt || it.createdAt || '',
+        onToggle: () => this.toggleItemDone(t, it.id),
+      });
     }));
     all.sort((a,b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
     return all.slice(0, 4);
   }
 
-  buildVibeSummary(digest){
+  computeOnPlate(){
+    const lists = this.state.lists;
+    const cc = this.categoryColors();
+    const TYPE_COLOR = { todo: cc[0], person: cc[1], payment: cc[2] };
+    const displayText = (t, it) => (t === 'person' && it.contact) ? (it.contact + (it.text ? ' — ' + it.text : '')) : it.text;
+    const all = [];
+    ['todo','person','payment'].forEach(t => (lists[t]||[]).filter(it => !it.done && !it.due).forEach(it => {
+      all.push({
+        id: it.id, listType: t, text: displayText(t, it), color: TYPE_COLOR[t],
+        createdAt: it.createdAt || '',
+        open: () => this.openItemEditor(t, it.id),
+        onToggle: (e) => { this.stopProp(e); this.toggleItemDone(t, it.id); },
+      });
+    }));
+    all.sort((a,b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const cap = 5;
+    return { items: all.slice(0, cap), more: Math.max(0, all.length - cap) };
+  }
+
+  buildVibeSummary(digest, mood){
     const lists = this.state.lists;
     const totalActive = ['todo','person','payment'].reduce((n,t) => n + (lists[t]||[]).filter(it=>!it.done).length, 0);
     const personActive = (lists.person||[]).filter(it=>!it.done).length;
     const overdueCount = digest.due.filter(d => d.dueLabel === 'Overdue').length;
     let text;
     if (overdueCount >= 2) text = "A few things are overdue — might be worth clearing those first.";
+    else if (mood === 'red') text = "A heavy note today — keep the list light if you can.";
+    else if (mood === 'green') text = "Good energy in today's entry. Ride that a bit.";
+    else if (mood === 'blue') text = "A quieter, reflective day. No need to rush the list.";
     else if (totalActive === 0) text = "Nothing on your plate right now. Enjoy the calm.";
     else if (personActive >= 3) text = "Quite a few people are waiting to hear back from you.";
     else if (totalActive >= 8) text = "Your lists have grown a bit — a good time to batch through them.";
@@ -1169,19 +1753,16 @@ class Component extends DCLogic {
     const isDesktop = vw >= 1024;
     const isTabletUp = !isMobile;
     const cc = this.categoryColors();
+    const derived = this.state.schemeColor ? derivePageScheme(this.state.schemeColor) : null;
+    const pal = (derived && (isDark ? derived.dark : derived.light)) || (isDark ? DEFAULT_SCHEME.dark : DEFAULT_SCHEME.light);
+    this.syncPageTheme(pal, isDark, cc);
 
-    const rootStyle = isDark ? {
-      '--bg':'#161310', '--surface':'#211c17', '--surface2':'#2a251d',
-      '--text':'#f2ede4', '--text2':'#a39a8c',
-      '--accent-todo': cc[0], '--accent-person': cc[1], '--accent-payment': cc[2], '--accent':'#d99169',
-      '--danger':'#e2685a',
-      background:'var(--bg)', color:'var(--text)', minHeight:'100dvh', fontFamily:"'Rubik', sans-serif",
-    } : {
-      '--bg':'#fdfaf8', '--surface':'#ffffff', '--surface2':'#f5f0eb',
-      '--text':'#241f1a', '--text2':'#6b6259',
-      '--accent-todo': cc[0], '--accent-person': cc[1], '--accent-payment': cc[2], '--accent':'#b5613a',
-      '--danger':'#c9483d',
-      background:'var(--bg)', color:'var(--text)', minHeight:'100dvh', fontFamily:"'Rubik', sans-serif",
+    const rootStyle = {
+      '--bg': pal.bg, '--surface': pal.surface, '--surface2': pal.surface2,
+      '--text': pal.text, '--text2': pal.text2,
+      '--accent-todo': cc[0], '--accent-person': cc[1], '--accent-payment': cc[2], '--accent': pal.accent,
+      '--danger': pal.danger,
+      background: pal.bg, color: pal.text, minHeight:'100dvh', fontFamily:"'Rubik', sans-serif",
     };
 
     const now = new Date();
@@ -1194,14 +1775,14 @@ class Component extends DCLogic {
 
     const hPad = isDesktop ? '32px' : isTablet ? '28px' : '20px';
     const shellStyle = { maxWidth: isDesktop ? '1120px' : isTablet ? '760px' : '480px', margin: '0 auto', minHeight: '100dvh', display: 'flex', flexDirection: 'column', position: 'relative' };
-    const mainStyle = { flex: 1, padding: '10px ' + hPad + (isMobile ? ' 140px' : ' 140px'), display: 'flex', flexDirection: 'column', gap: '20px' };
+    const mainStyle = { flex: 1, padding: '10px ' + hPad + (isMobile ? ' 140px' : ' 140px'), display: 'flex', flexDirection: 'column', gap: '20px', overflowX: 'hidden' };
     const headerStyle = { position:'sticky', top:0, zIndex:60, background:'var(--bg)', padding:'22px ' + hPad + ' 14px', display:'flex', alignItems:'center', justifyContent:'space-between' };
     const navStyle = { display:'flex', gap:'6px', padding:'6px ' + hPad + ' 16px', position:'relative', justifyContent: isMobile ? 'center' : 'flex-start' };
 
     // Tab transitions: pill indicator slides between tabs; page content slides in from the travel direction
     const tabIndex = { today: 0, journal: 1, lists: 2 }[this.state.tab] || 0;
     const tabEase = 'cubic-bezier(0.22, 1, 0.36, 1)';
-    const pageAnim = { animation: (this.state.tabDir < 0 ? 'pageInL' : 'pageInR') + ' 0.3s ' + tabEase + ' both' };
+    const pageAnim = this.prefersReducedMotion() ? {} : { animation: (this.state.tabDir < 0 ? 'pageInL' : 'pageInR') + ' 0.3s ' + tabEase + ' both' };
     const topNavIndicatorStyle = {
       position:'absolute', top:0, bottom:0, left: (tabIndex * 114) + 'px', width:'108px',
       background:'var(--surface2)', borderRadius:'999px', transition:'left 0.3s ' + tabEase,
@@ -1244,7 +1825,9 @@ class Component extends DCLogic {
       const padV = (parseFloat(tier.padding) || 20) * 2;
       const estHeight = padV + 24 + neededLines * lhPx + (reflectionCount ? 22 : 0);
       return {
-        key, dateLabel: d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }), preview: excerptText,
+        key, monthKey: key.slice(0, 7),
+        monthLabel: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        dateLabel: d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }), preview: excerptText,
         cardStyle, bodyStyle, textStyle, dateAlign: tier.textAlign === 'center' ? 'center' : 'left',
         reflectionCount, reflectionLabel: reflectionCount ? ('↩ ' + reflectionCount + ' reflection' + (reflectionCount > 1 ? 's' : '')) : '',
         open: () => this.openJournalModal(key),
@@ -1252,16 +1835,24 @@ class Component extends DCLogic {
       };
     });
 
-    const journalColHeights = new Array(journalColCount).fill(0);
-    const journalColumns = Array.from({ length: journalColCount }, () => ({
-      items: [],
-      style: { flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column', gap: journalColGap },
-    }));
+    const monthOrder = [];
+    const monthMap = {};
     entriesList.forEach(entry => {
-      let idx = 0;
-      for (let i = 1; i < journalColCount; i++) if (journalColHeights[i] < journalColHeights[idx]) idx = i;
-      journalColumns[idx].items.push(entry);
-      journalColHeights[idx] += entry.estHeight + parseFloat(journalColGap);
+      if (!monthMap[entry.monthKey]) { monthMap[entry.monthKey] = []; monthOrder.push(entry.monthKey); }
+      monthMap[entry.monthKey].push(entry);
+    });
+    const colStyle = { flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column', gap: journalColGap };
+    const journalMonthBlocks = monthOrder.map(mk => {
+      const items = monthMap[mk];
+      const heights = new Array(journalColCount).fill(0);
+      const columns = Array.from({ length: journalColCount }, () => ({ items: [], style: colStyle }));
+      items.forEach(entry => {
+        let idx = 0;
+        for (let i = 1; i < journalColCount; i++) if (heights[i] < heights[idx]) idx = i;
+        columns[idx].items.push(entry);
+        heights[idx] += entry.estHeight + parseFloat(journalColGap);
+      });
+      return { key: mk, label: items[0].monthLabel, columns };
     });
 
     const searchQuery = (this.state.searchQuery || '').trim().toLowerCase();
@@ -1269,6 +1860,7 @@ class Component extends DCLogic {
     
     // 1. Actions
     const ACTIONS = [
+      { id: 'a-write', kind: 'Action', text: "Write today's journal entry", open: () => this.writeTodayEntry() },
       { id: 'a-rec', kind: 'Action', text: 'Create Journal Entry', open: () => { this.closeSearch(); this.onWidgetClick(); } },
       { id: 'a-todo', kind: 'Action', text: 'Create To-Do', open: () => { this.closeSearch(); this.switchTab('lists'); this.openItemEditor('todo'); } },
       { id: 'a-settings', kind: 'Action', text: 'Open Settings', open: () => { this.closeSearch(); this.openSetup(); } },
@@ -1283,11 +1875,14 @@ class Component extends DCLogic {
       const LIST_LABELS = { todo:'To-Dos', person:'People', payment:'Payments' };
       entryKeys.forEach(key => {
         const e = this.state.journal[key];
-        if ((e.content || '').toLowerCase().includes(searchQuery)) {
+        const reflections = (e.introspections || []).map(r => r.content || '').join(' ');
+        const hay = ((e.content || '') + ' ' + reflections).toLowerCase();
+        if (hay.includes(searchQuery)) {
+          const fromReflection = (e.content || '').toLowerCase().includes(searchQuery) ? e.content : reflections;
           searchResults.push({
             id: 'j-' + key,
             kind: 'Journal · ' + new Date(key + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' }),
-            text: this.excerpt(e.content, 90),
+            text: this.excerpt(fromReflection, 90),
             open: () => { this.closeSearch(); this.switchTab('journal'); this.openJournalModal(key); },
           });
         }
@@ -1307,26 +1902,26 @@ class Component extends DCLogic {
     }
 
     let featuredEntry = null;
-    if (entryKeys.length) {
-      const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
-      const key = entryKeys[dayOfYear % entryKeys.length];
-      const e = this.state.journal[key];
+    const todayKey = todayKeyFn();
+    const sameCalendar = entryKeys.filter(k => k !== todayKey && k.slice(5) === todayKey.slice(5)).sort().reverse();
+    const throwbackKey = sameCalendar[0] || entryKeys.filter(k => k !== todayKey).slice().reverse()[0];
+    if (throwbackKey) {
+      const e = this.state.journal[throwbackKey];
       const featExcerpt = this.excerpt(e.content, 130);
       const tier = this.cardTier(featExcerpt);
       featuredEntry = {
-        label: new Date(key + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' }),
+        label: new Date(throwbackKey + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
         text: featExcerpt, moodBg: moodBgMap[e.mood] || moodBgMap.yellow,
         cardStyle: {
           background: 'none', border: '1.5px solid var(--surface2)', borderRadius: '22px', cursor: 'pointer',
           display: 'flex', flexDirection: 'column', padding: '22px', gap: '10px', justifyContent: 'center', minHeight: '150px',
         },
         textStyle: { fontFamily: tier.fontFamily, fontWeight: tier.fontWeight, fontSize: tier.fontSize, lineHeight: tier.lineHeight, letterSpacing: tier.letterSpacing, textAlign: tier.textAlign, color: 'var(--text)', whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
-        open: () => this.openJournalModal(key),
+        open: () => this.openJournalModal(throwbackKey),
       };
     }
 
     let todayEntryCard = null;
-    const todayKey = todayKeyFn();
     const eToday = this.state.journal[todayKey];
     if (eToday && eToday.content.trim()) {
       const featExcerpt = this.excerpt(eToday.content, 130);
@@ -1366,6 +1961,17 @@ class Component extends DCLogic {
     const modalReadingText = journalModalEntry ? this.excerpt(journalModalEntry.content, 100000) : '';
     const modalTier = journalModalEntry ? this.cardTier(this.excerpt(journalModalEntry.content, 175)) : null;
     const modalTextStyle = modalTier ? { fontFamily: modalTier.fontFamily, fontWeight: modalTier.fontWeight, fontSize: modalTier.fontSize, lineHeight: modalTier.lineHeight, letterSpacing: modalTier.letterSpacing, textAlign: modalTier.textAlign, color: 'var(--text)', whiteSpace: 'pre-wrap' } : {};
+    const journalModalDumps = (journalModalEntry && journalModalEntry.dumps && journalModalEntry.dumps.length)
+      ? journalModalEntry.dumps.map(d => ({
+          label: d.at ? new Date(d.at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'Dump',
+          content: d.content,
+        }))
+      : [];
+    const journalKeysSorted = Object.keys(this.state.journal).sort();
+    const journalModalIndex = journalModalKey ? journalKeysSorted.indexOf(journalModalKey) : -1;
+    const hasJournalPrev = journalModalIndex > 0;
+    const hasJournalNext = journalModalIndex >= 0 && journalModalIndex < journalKeysSorted.length - 1;
+    const plate = this.computeOnPlate();
 
     const ed = this.state.itemEditor;
     const itemEditorTitle = ed ? (ed.isNew ? 'New item' : 'Edit item') : '';
@@ -1431,6 +2037,14 @@ class Component extends DCLogic {
       rootStyle, isDark, isLight: !isDark, greeting, headerDate,
       isDesktop, isMobile, isTablet, isTabletUp, shellStyle, mainStyle, headerStyle, navStyle, todayColStyle, journalWrapStyle, listsGridStyle, priorityGridStyle,
       setupOpen: this.state.setupOpen, errHome: this.state.errHome, orbErr: this.state.orbErr,
+      showStatusBanner: this.state.isOffline || this.state.voiceQueueCount > 0,
+      statusBannerText: this.state.isOffline
+        ? (this.state.voiceQueueCount > 0
+          ? 'Offline — ' + this.state.voiceQueueCount + ' voice note' + (this.state.voiceQueueCount > 1 ? 's' : '') + ' queued'
+          : 'Offline — saved entries still available')
+        : (this.state.voiceQueueCount > 0
+          ? this.state.voiceQueueCount + ' voice note' + (this.state.voiceQueueCount > 1 ? 's' : '') + ' queued — processing…'
+          : ''),
       submitApiKeyFromInput: this.submitApiKeyFromInput, openSetup: this.openSetup,
       closeSetup: this.closeSetup, closeSetupBackdrop: this.closeSetupBackdrop,
       onWidgetPointerDown: this.onWidgetPointerDown, onWidgetPointerMove: this.onWidgetPointerMove,
@@ -1458,13 +2072,18 @@ class Component extends DCLogic {
       lastAdded: this.state.lastAdded, lastAddedText, dismissLastAdded: this.dismissLastAdded,
       undoLastAdded: this.undoLastAdded, reviewLastAdded: this.reviewLastAdded,
       lastAddedHasTasks: !!(this.state.lastAdded && this.state.lastAdded.tasks && this.state.lastAdded.tasks.length),
-      lastAddedCursor: (this.state.lastAdded && this.state.lastAdded.tasks && this.state.lastAdded.tasks.length) ? 'cursor:pointer;' : '',
-      entriesList, journalColumns, noEntries: entriesList.length === 0, featuredEntry, todayEntryCard,
+      lastAddedCursor: (this.state.lastAdded && this.state.lastAdded.tasks && this.state.lastAdded.tasks.length) ? 'pointer' : 'default',
+      entriesList, journalMonthBlocks, noEntries: entriesList.length === 0, featuredEntry, todayEntryCard,
+      writeTodayEntry: this.writeTodayEntry,
       journalModalKey, journalModalText: this.state.journalModalText, journalModalLabel,
       journalModalMoodBg: journalModalEntry ? (moodBgMap[journalModalEntry.mood] || moodBgMap.yellow) : moodBgMap.yellow,
       journalModalReflections, hasReflections: journalModalReflections.length > 0, onReflectFromModal,
       isModalIntrospecting, isModalNotIntrospecting: !isModalIntrospecting,
       isModalEditing: this.state.journalModalEditing, isModalReading: !this.state.journalModalEditing,
+      showJournalDumps: !this.state.journalModalEditing && journalModalDumps.length > 0,
+      showFlatJournal: !this.state.journalModalEditing && journalModalDumps.length === 0,
+      journalModalDumps, hasJournalPrev, noJournalPrev: !hasJournalPrev, hasJournalNext, noJournalNext: !hasJournalNext,
+      gotoJournalPrev: this.gotoJournalPrev, gotoJournalNext: this.gotoJournalNext,
       modalReadingText, modalTextStyle, startJournalEdit: this.startJournalEdit, cancelJournalEdit: this.cancelJournalEdit,
       closeJournalModal: this.closeJournalModal, closeJournalModalBackdrop: this.closeJournalModalBackdrop,
       onJournalModalTextChange: this.onJournalModalTextChange, saveJournalModal: this.saveJournalModal, deleteJournalModal: this.deleteJournalModal,
@@ -1484,6 +2103,10 @@ class Component extends DCLogic {
       onSelectThemeLight: () => this.setThemeMode('light'),
       onSelectThemeDark: () => this.setThemeMode('dark'),
       onSelectThemeAuto: () => this.setThemeMode('auto'),
+      schemeColorValue: this.state.schemeColor || DEFAULT_SCHEME.light.accent,
+      schemeSwatch: this.state.schemeColor || pal.accent,
+      schemeDefaultBg: this.state.schemeColor ? 'none' : 'var(--surface2)',
+      onSchemeColorChange: this.onSchemeColorChange, resetSchemeColor: this.resetSchemeColor,
       isIdle, isRec, isNotRec: !isRec, isProc, isNotProc: !isProc, procTitle: this.state.procTitle, procStep: this.state.procStep,
       isIntrospecting: !!introspectKey, isNotIntrospecting: !introspectKey, introspectLabel, cancelIntrospect: this.cancelIntrospect,
       recLabel: isRec ? 'Recording — release to stop' : introspectKey ? verb + ' to reflect' : (todaysEntry ? verb + ' to record more' : verb + ' to record'),
@@ -1498,7 +2121,9 @@ class Component extends DCLogic {
       onRecPointerDown: this.onRecPointerDown, onRecPointerUp: this.onRecPointerUp,
       onRecKeyDown: this.onRecKeyDown, onRecKeyUp: this.onRecKeyUp,
       preventContextMenu: this.preventContextMenu,
-      recentlyCompleted: this.computeRecentlyCompleted(), vibeSummary: this.buildVibeSummary(digest),
+      recentlyCompleted: this.computeRecentlyCompleted(), vibeSummary: this.buildVibeSummary(digest, eToday && eToday.mood),
+      onPlate: plate.items, onPlateMore: plate.more,
+      onMainPointerDown: this.onMainPointerDown, onMainPointerUp: this.onMainPointerUp,
       listSections: [
         this.buildSection('todo', 'To-Dos', '--accent-todo'),
         this.buildSection('person', 'People', '--accent-person'),
@@ -1508,6 +2133,13 @@ class Component extends DCLogic {
   }
 }
 
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  });
+}
 </script>
 </body>
 </html>

@@ -1,0 +1,55 @@
+{
+  "name": "Journal Zero",
+  "short_name": "Journal Zero",
+  "description": "Local-first voice journal and planner.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fdfaf8",
+  "theme_color": "#b5613a",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "Record",
+      "short_name": "Record",
+      "description": "Start a voice note",
+      "url": "./index.html?action=record",
+      "icons": [{ "src": "./icon.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "Today",
+      "short_name": "Today",
+      "url": "./index.html?tab=today",
+      "icons": [{ "src": "./icon.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "Journal",
+      "short_name": "Journal",
+      "url": "./index.html?tab=journal",
+      "icons": [{ "src": "./icon.png", "sizes": "512x512", "type": "image/png" }]
+    }
+  ]
+}

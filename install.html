@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Install Journal Zero</title>
+  <meta name="description" content="Install Journal Zero on your phone or computer.">
+  <meta name="theme-color" content="#b5613a">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: 'Rubik', sans-serif;
+      background: #fdfaf8;
+      color: #241f1a;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.55;
+    }
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 40px 24px 56px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .brand img {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      margin: 0 0 24px;
+      color: #6b6259;
+      font-size: 0.95rem;
+    }
+    .banner {
+      display: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      line-height: 1.45;
+    }
+    .banner.show { display: block; }
+    .banner.ok { background: #eaf6ee; color: #22302a; }
+    .banner.info { background: #f5f0eb; color: #6b6259; font-weight: 500; }
+    .install-cta {
+      margin-bottom: 24px;
+    }
+    button.install-btn {
+      width: 100%;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      background: #241f1a;
+      color: #fdfaf8;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 16px 20px;
+      border-radius: 16px;
+      transition: opacity 0.15s;
+    }
+    button.install-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    button.install-btn:not(:disabled):active {
+      transform: scale(0.98);
+    }
+    .install-hint {
+      margin: 10px 0 0;
+      font-size: 0.78rem;
+      color: #6b6259;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .manual-guide {
+      margin-top: 8px;
+      padding-top: 24px;
+      border-top: 1px solid #f5f0eb;
+    }
+    .manual-guide h2.section-label {
+      margin: 0 0 16px;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6b6259;
+      font-weight: 700;
+    }
+    .card a { color: inherit; font-weight: 700; }
+    .card {
+      background: #fff;
+      border-radius: 22px;
+      padding: 22px 20px;
+      margin-bottom: 14px;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6b6259;
+      font-weight: 700;
+    }
+    ol {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    li {
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    li:last-child { margin-bottom: 0; }
+    .note {
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: #6b6259;
+      line-height: 1.5;
+    }
+    .actions {
+      margin-top: 20px;
+    }
+    a.btn {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      background: #f5f0eb;
+      color: #241f1a;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 14px 20px;
+      border-radius: 14px;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #161310; color: #f2ede4; }
+      .lede, h2, .note, .install-hint, .manual-guide h2.section-label { color: #a39a8c; }
+      .manual-guide { border-top-color: #2a251d; }
+      .card { background: #211c17; }
+      .banner.ok { background: #22302a; color: #eaf6ee; }
+      .banner.info { background: #2a251d; color: #a39a8c; }
+      button.install-btn { background: #f2ede4; color: #161310; }
+      a.btn { background: #2a251d; color: #f2ede4; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <img src="./icon.png" width="52" height="52" alt="">
+      <h1>Install Journal Zero</h1>
+    </div>
+
+    <p class="lede">Add it to your home screen or dock. Your journal stays on this device.</p>
+
+    <div class="banner ok" id="installed-banner">Already installed. You can open the app from your home screen or dock.</div>
+    <div class="banner info" id="waiting-banner">Preparing install…</div>
+    <div class="banner info" id="dismissed-banner">Install dismissed. Tap Install again, or use the steps below.</div>
+
+    <div class="install-cta" id="install-cta">
+      <button type="button" class="install-btn" id="install-btn" disabled>Install Journal Zero</button>
+      <p class="install-hint" id="install-hint">One tap opens your browser’s install dialog.</p>
+    </div>
+
+    <div class="manual-guide" id="manual-guide">
+      <h2 class="section-label">Install manually</h2>
+
+      <div class="card">
+        <h2>iPhone &amp; iPad</h2>
+        <ol>
+          <li>Open <a href="./index.html">Journal Zero</a> in <strong>Safari</strong> (Chrome on iOS won’t install PWAs).</li>
+          <li>Tap the <strong>Share</strong> button at the bottom of the screen.</li>
+          <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+          <li>Tap <strong>Add</strong> in the top right.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>Android</h2>
+        <ol>
+          <li>Open Journal Zero in <strong>Chrome</strong>.</li>
+          <li>Tap the <strong>menu</strong> (three dots) or look for an <strong>Install</strong> banner at the bottom.</li>
+          <li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+          <li>Confirm when prompted.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>Mac &amp; Windows</h2>
+        <ol>
+          <li>Open Journal Zero in <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Brave</strong>.</li>
+          <li>Click the <strong>install</strong> icon in the address bar (monitor with a down arrow), or use the browser menu → <strong>Install Journal Zero</strong>.</li>
+          <li>Confirm. The app opens in its own window.</li>
+        </ol>
+      </div>
+    </div>
+
+    <p class="note">Install needs a secure connection (HTTPS) when you host online. On your computer, <code style="font-size:0.85em;">localhost</code> works for testing.</p>
+
+    <div class="actions">
+      <a class="btn" href="./index.html">Open Journal Zero</a>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var deferredPrompt = null;
+      var installBtn = document.getElementById('install-btn');
+      var installHint = document.getElementById('install-hint');
+      var installCta = document.getElementById('install-cta');
+      var waitingBanner = document.getElementById('waiting-banner');
+      var installedBanner = document.getElementById('installed-banner');
+      var dismissedBanner = document.getElementById('dismissed-banner');
+      var manualGuide = document.getElementById('manual-guide');
+      var fallbackTimer = null;
+
+      var ua = navigator.userAgent || '';
+      var isIos = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+      function show(el) { if (el) el.classList.add('show'); }
+      function hide(el) { if (el) el.classList.remove('show'); }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+      }
+
+      function scrollToManual() {
+        if (manualGuide) manualGuide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      if (isStandalone) {
+        hide(waitingBanner);
+        hide(installCta);
+        show(installedBanner);
+        return;
+      }
+
+      if (isIos) {
+        hide(waitingBanner);
+        installBtn.textContent = 'Open in Safari to install';
+        installBtn.disabled = false;
+        installHint.textContent = 'iOS needs Safari — Apple doesn’t allow one-tap install from other browsers.';
+        installBtn.addEventListener('click', function () {
+          window.location.href = './index.html';
+        });
+        scrollToManual();
+        return;
+      }
+
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        hide(waitingBanner);
+        installBtn.disabled = false;
+        installBtn.textContent = 'Install Journal Zero';
+        installHint.textContent = 'One tap opens your browser’s install dialog.';
+      });
+
+      installBtn.addEventListener('click', function () {
+        if (!deferredPrompt) return;
+        installBtn.disabled = true;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function (choice) {
+          deferredPrompt = null;
+          if (choice.outcome === 'accepted') {
+            hide(installCta);
+            show(installedBanner);
+          } else {
+            installBtn.disabled = false;
+            show(dismissedBanner);
+            scrollToManual();
+          }
+        });
+      });
+
+      fallbackTimer = setTimeout(function () {
+        if (deferredPrompt || isStandalone) return;
+        hide(waitingBanner);
+        if (!installBtn.disabled && deferredPrompt) return;
+        installBtn.disabled = true;
+        installBtn.textContent = 'Install not available here';
+        installHint.textContent = 'Try Chrome or Edge, or use the manual steps below.';
+        scrollToManual();
+      }, 3500);
+    })();
+  </script>
+</body>
+</html>

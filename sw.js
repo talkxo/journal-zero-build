@@ -1,4 +1,4 @@
-const CACHE_NAME = 'journal-zero-v2';
+const CACHE_NAME = 'journal-zero-v4';
 const SYNC_TAG = 'voice-queue-sync';
 const PRECACHE = ['./', './index.html', './offline.html', './support.js', './icon.svg', './icon.png', './manifest.json'];
 
@@ -6,7 +6,6 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
   );
 });
 
@@ -16,6 +15,10 @@ self.addEventListener('activate', (event) => {
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'skip-waiting') self.skipWaiting();
 });
 
 self.addEventListener('sync', (event) => {

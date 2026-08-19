@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Journal Zero</title>
+<title>JZ</title>
 <meta name="description" content="Local-first voice journal and planner.">
 <meta name="theme-color" content="#fdfaf8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161310" media="(prefers-color-scheme: dark)">
@@ -49,6 +49,13 @@
     .sheet-in{animation:sheetIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;}
     .check-ring{transition:background 0.18s ease, border-color 0.18s ease, transform 0.16s ease;}
     .check-ring:active{transform:scale(0.86);}
+    @media (min-width: 1024px){
+      .list-row{transition:background 0.15s ease, box-shadow 0.15s ease;}
+      .list-row:hover{background:var(--surface2) !important;box-shadow:0 2px 10px rgba(0,0,0,0.04);}
+    }
+    @media (display-mode: window-controls-overlay){
+      .app-titlebar-spacer{height:env(titlebar-area-height, 0px);width:100%;flex-shrink:0;}
+    }
     @media (prefers-reduced-motion: reduce){
       .sheet-in{animation:none !important;}
       .check-ring{transition:none;}
@@ -56,7 +63,13 @@
   </style>
 </helmet>
 
-<div style="{{rootStyle}}">
+<div style="{{rootStyle}}" ondragenter="{{onRootDragEnter}}" ondragover="{{onRootDragOver}}" ondragleave="{{onRootDragLeave}}" ondrop="{{onRootDrop}}">
+
+  <sc-if value="{{dragImportActive}}">
+    <div style="position:fixed;inset:0;z-index:400;background:rgba(36,31,26,0.42);display:flex;align-items:center;justify-content:center;pointer-events:none;">
+      <div style="background:var(--surface);color:var(--text);padding:18px 24px;border-radius:18px;font-weight:700;font-size:0.92rem;box-shadow:0 16px 40px rgba(0,0,0,0.16);">Drop backup JSON to import</div>
+    </div>
+  </sc-if>
 
   <sc-if value="{{setupOpen}}">
     <div style="position:fixed;inset:0;background:rgba(30,24,20,0.45);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;" onclick="{{closeSetupBackdrop}}">
@@ -109,6 +122,8 @@
           <div style="font-size:0.72rem;color:var(--text2);margin-top:7px;line-height:1.45;">Tint saved on this device.</div>
         </div>
 
+        <div style="font-size:0.72rem;color:var(--text2);text-align:center;padding-top:2px;">{{appVersionLabel}}</div>
+
         <div>
           <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;margin-bottom:8px;">Currency</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -138,6 +153,9 @@
             <div style="display:flex;gap:6px;">
               <button onclick="{{exportData}}" aria-label="Export backup" title="Export backup (JSON)" style="width:42px;height:42px;background:none;border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 19h16"></path></svg>
+              </button>
+              <button onclick="{{printJournal}}" aria-label="Print journal" title="Print journal" style="width:42px;height:42px;background:none;border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"></path><rect x="6" y="13" width="12" height="8" rx="1"></rect><path d="M6 17h12"></path></svg>
               </button>
               <button onclick="{{triggerImport}}" aria-label="Import backup" title="Import backup (JSON)" style="width:42px;height:42px;background:none;border:1.5px solid var(--surface2);color:var(--text);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"></path><path d="M7 8l5-5 5 5"></path><path d="M4 19h16"></path></svg>
@@ -324,6 +342,7 @@
 
   <div style="{{shellStyle}}">
 
+    <div class="app-titlebar-spacer"></div>
     <header style="{{headerStyle}}">
       <div>
         <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);font-weight:700;">{{greeting}}</div>
@@ -348,21 +367,31 @@
       </div>
     </nav>
 
+    <sc-if value="{{swUpdateReady}}">
+      <div style="margin:0 20px 8px;padding:10px 14px;background:var(--surface2);border-radius:14px;font-size:0.78rem;font-weight:600;color:var(--text);line-height:1.45;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+        <span>Update ready.</span>
+        <button onclick="{{applySwUpdate}}" style="background:var(--text);color:var(--bg);border:none;border-radius:10px;padding:6px 12px;font-weight:800;font-size:0.76rem;cursor:pointer;font-family:inherit;">Refresh</button>
+      </div>
+    </sc-if>
+
     <sc-if value="{{showStatusBanner}}">
-      <div style="margin:0 20px 8px;padding:10px 14px;background:var(--surface2);border-radius:14px;font-size:0.78rem;font-weight:600;color:var(--text2);line-height:1.45;text-align:center;">{{statusBannerText}}</div>
+      <div onclick="{{onStatusBannerClick}}" style="margin:0 20px 8px;padding:10px 14px;background:var(--surface2);border-radius:14px;font-size:0.78rem;font-weight:600;color:var(--text2);line-height:1.45;text-align:center;{{statusBannerClickStyle}}">{{statusBannerText}}</div>
     </sc-if>
 
     <sc-if value="{{searchOpen}}">
       <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:flex-start;justify-content:center;z-index:290;padding:20px;padding-top:80px;" onclick="{{closeSearchBackdrop}}">
         <div class="sheet-in" style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:460px;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
           <div style="padding:18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;">
-            <input type="text" value="{{searchQuery}}" oninput="{{onSearchQueryChange}}" onchange="{{onSearchQueryChange}}" placeholder="Search entries and lists…" autofocus="" style="background:var(--surface2);border:none;color:var(--text);border-radius:14px;padding:12px 16px;font-size:0.92rem;outline:none;">
+            <input type="text" value="{{searchQuery}}" oninput="{{onSearchQueryChange}}" onchange="{{onSearchQueryChange}}" placeholder="Search or type a command…" autofocus="" style="background:var(--surface2);border:none;color:var(--text);border-radius:14px;padding:12px 16px;font-size:0.92rem;outline:none;">
             <sc-if value="{{hasSearchResults}}" hint-placeholder-val="{{false}}">
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <sc-for list="{{searchResults}}" as="r" hint-placeholder-count="3">
-                  <div onclick="{{r.open}}" style="display:flex;flex-direction:column;gap:2px;background:var(--surface2);border-radius:14px;padding:10px 14px;cursor:pointer;">
-                    <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);">{{r.kind}}</div>
-                    <div style="font-size:0.85rem;color:var(--text);line-height:1.4;">{{r.text}}</div>
+                  <div onclick="{{r.open}}" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:14px;padding:10px 14px;cursor:pointer;">
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);">{{r.kind}}</div>
+                      <div style="font-size:0.85rem;color:var(--text);line-height:1.4;">{{r.text}}</div>
+                    </div>
+                    <sc-if value="{{r.keys}}"><div style="flex-shrink:0;font-size:0.68rem;font-weight:700;color:var(--text2);letter-spacing:0.04em;">{{r.keys}}</div></sc-if>
                   </div>
                 </sc-for>
               </div>
@@ -375,15 +404,73 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{shortcutsOpen}}">
+      <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:flex-start;justify-content:center;z-index:295;padding:20px;padding-top:80px;" onclick="{{closeShortcutsBackdrop}}">
+        <div class="sheet-in" style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:420px;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
+          <div style="padding:18px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:1rem;font-weight:800;">Keyboard shortcuts</div>
+            <button onclick="{{closeShortcuts}}" aria-label="Close" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <div style="padding:0 18px 18px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;">
+            <sc-for list="{{shortcutRows}}" as="row" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--surface2);border-radius:12px;">
+                <span style="font-size:0.84rem;color:var(--text);">{{row.label}}</span>
+                <span style="font-size:0.72rem;font-weight:700;color:var(--text2);white-space:nowrap;">{{row.keys}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{voiceQueueOpen}}">
+      <div style="position:fixed;inset:0;background:rgba(30,24,20,0.4);display:flex;align-items:flex-start;justify-content:center;z-index:296;padding:20px;padding-top:80px;" onclick="{{closeVoiceQueueBackdrop}}">
+        <div class="sheet-in" style="background:var(--surface);border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,0.16);width:100%;max-width:420px;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;" onclick="{{stopProp}}">
+          <div style="padding:18px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:1rem;font-weight:800;">Pending voice notes</div>
+            <button onclick="{{closeVoiceQueue}}" aria-label="Close" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <div style="padding:0 18px 12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;">
+            <sc-for list="{{voiceQueueItems}}" as="q" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--surface2);border-radius:14px;">
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:0.84rem;font-weight:700;color:var(--text);">{{q.label}}</div>
+                  <div style="font-size:0.72rem;color:var(--text2);margin-top:2px;">Waiting to process</div>
+                </div>
+                <button onclick="{{q.onRetry}}" style="background:var(--text);color:var(--bg);border:none;border-radius:10px;padding:7px 10px;font-size:0.72rem;font-weight:800;cursor:pointer;font-family:inherit;">Retry</button>
+                <button onclick="{{q.onDelete}}" aria-label="Delete" style="background:none;border:1.5px solid var(--surface2);color:var(--danger);border-radius:10px;padding:7px 9px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;">Delete</button>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:0 18px 18px;display:flex;gap:8px;">
+            <button onclick="{{flushVoiceQueue}}" style="flex:1;background:var(--text);color:var(--bg);border:none;border-radius:12px;padding:11px 0;font-weight:800;font-size:0.82rem;cursor:pointer;font-family:inherit;">Process all</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{contextMenu}}">
+      <div style="position:fixed;inset:0;z-index:320;" onclick="{{closeContextMenu}}">
+        <div class="sheet-in" style="position:fixed;left:{{contextMenu.x}}px;top:{{contextMenu.y}}px;background:var(--surface);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:6px;min-width:148px;display:flex;flex-direction:column;gap:2px;" onclick="{{stopProp}}">
+          <sc-if value="{{contextMenu.canToggle}}">
+            <button onclick="{{contextMenu.onToggle}}" style="background:none;border:none;color:var(--text);text-align:left;padding:9px 12px;border-radius:10px;font-size:0.84rem;font-weight:600;cursor:pointer;font-family:inherit;">{{contextMenu.toggleLabel}}</button>
+          </sc-if>
+          <button onclick="{{contextMenu.onEdit}}" style="background:none;border:none;color:var(--text);text-align:left;padding:9px 12px;border-radius:10px;font-size:0.84rem;font-weight:600;cursor:pointer;font-family:inherit;">Edit</button>
+          <button onclick="{{contextMenu.onDelete}}" style="background:none;border:none;color:var(--danger);text-align:left;padding:9px 12px;border-radius:10px;font-size:0.84rem;font-weight:600;cursor:pointer;font-family:inherit;">Delete</button>
+        </div>
+      </div>
+    </sc-if>
+
     <main style="{{mainStyle}}" onpointerdown="{{onMainPointerDown}}" onpointerup="{{onMainPointerUp}}">
 
       <!-- ═══ TODAY TAB ═══ -->
       <sc-if value="{{isTodayTab}}" hint-placeholder-val="{{true}}">
         <div style="{{todayColStyle}}">
-
-
-
-          <div style="{{priorityGridStyle}}">
+          <div style="{{todayOuterStyle}}">
             <div style="background:var(--surface);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;">
               <div style="display:flex;align-items:center;justify-content:space-between;">
                 <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Get Done</div>
@@ -437,21 +524,42 @@
               </sc-if>
             </div>
 
-            <sc-if value="{{todayEntryCard}}">
-              <div onclick="{{todayEntryCard.open}}" style="{{todayEntryCard.cardStyle}}">
-                <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Today's Entries</div>
-                <div style="{{todayEntryCard.textStyle}}">{{todayEntryCard.text}}</div>
-              </div>
-            </sc-if>
+            <div style="{{todaySideColStyle}}">
+              <div style="{{todayJournalGridStyle}}">
+                <sc-if value="{{todayEntryCard}}">
+                  <div onclick="{{todayEntryCard.open}}" style="{{todayEntryCard.cardStyle}}">
+                    <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Today's Entries</div>
+                    <div style="{{todayEntryCard.textStyle}}">{{todayEntryCard.text}}</div>
+                  </div>
+                </sc-if>
 
-            <sc-if value="{{featuredEntry}}">
-              <div onclick="{{featuredEntry.open}}" style="{{featuredEntry.cardStyle}}">
-                <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Throwback · {{featuredEntry.label}}</div>
-                <div style="{{featuredEntry.textStyle}}">{{featuredEntry.text}}</div>
+                <sc-if value="{{featuredEntry}}">
+                  <div onclick="{{featuredEntry.open}}" style="{{featuredEntry.cardStyle}}">
+                    <div style="font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);">Throwback · {{featuredEntry.label}}</div>
+                    <div style="{{featuredEntry.textStyle}}">{{featuredEntry.text}}</div>
+                  </div>
+                </sc-if>
               </div>
-            </sc-if>
+
+              <sc-if value="{{isDesktop}}">
+                <sc-if value="{{desktopListsGlance.length}}" hint-placeholder-val="{{false}}">
+                  <div style="background:var(--surface);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <div style="font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);font-weight:700;">Lists</div>
+                      <button onclick="{{gotoLists}}" style="background:none;border:none;color:var(--text2);font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;">View all</button>
+                    </div>
+                    <sc-for list="{{desktopListsGlance}}" as="gl" hint-placeholder-count="4">
+                      <div onclick="{{gl.open}}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--surface2);border-radius:12px;cursor:pointer;">
+                        <span style="width:8px;height:8px;border-radius:999px;background:{{gl.color}};flex-shrink:0;"></span>
+                        <span style="font-size:0.82rem;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{gl.text}}</span>
+                        <sc-if value="{{gl.meta}}"><span style="font-size:0.66rem;font-weight:700;color:var(--text2);flex-shrink:0;">{{gl.meta}}</span></sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </sc-if>
+            </div>
           </div>
-
         </div>
       </sc-if>
 
@@ -518,7 +626,7 @@
             
               <div style="display:flex;flex-direction:column;gap:8px;">
                 <sc-for list="{{sec.items}}" as="it" hint-placeholder-count="2">
-                  <div draggable="true" ondragstart="{{it.onDragStart}}" ondragover="{{it.onDragOver}}" ondrop="{{it.onDrop}}" onpointerdown="{{it.onPointerDown}}" onpointermove="{{it.onPointerMove}}" onpointerup="{{it.onPointerUp}}" onpointercancel="{{it.onPointerUp}}" style="display:flex;align-items:flex-start;gap:10px;background:var(--surface);border-radius:16px;padding:13px 14px;">
+                  <div class="list-row" draggable="true" ondragstart="{{it.onDragStart}}" ondragover="{{it.onDragOver}}" ondrop="{{it.onDrop}}" onpointerdown="{{it.onPointerDown}}" onpointermove="{{it.onPointerMove}}" onpointerup="{{it.onPointerUp}}" onpointercancel="{{it.onPointerUp}}" oncontextmenu="{{it.onContextMenu}}" style="display:flex;align-items:flex-start;gap:10px;background:var(--surface);border-radius:16px;padding:13px 14px;">
                     <button onclick="{{it.onToggle}}" aria-label="Mark done" class="tap-pad check-ring" style="width:19px;height:19px;border-radius:999px;border:2px solid var(--text2);background:none;flex-shrink:0;cursor:pointer;margin-top:2px;padding:0;"></button>
                     <div style="flex:1;min-width:0;cursor:pointer;" onclick="{{it.onEdit}}">
                       <div style="display:flex;align-items:flex-start;gap:8px;">
@@ -542,7 +650,7 @@
                   <sc-if value="{{sec.showDone}}" hint-placeholder-val="{{false}}">
                     <div style="display:flex;flex-direction:column;gap:8px;">
                       <sc-for list="{{sec.doneItems}}" as="it" hint-placeholder-count="1">
-                        <div style="display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border-radius:16px;padding:12px 14px;opacity:0.6;">
+                        <div class="list-row" oncontextmenu="{{it.onContextMenu}}" style="display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border-radius:16px;padding:12px 14px;opacity:0.6;">
                           <button onclick="{{it.onToggle}}" aria-label="Mark not done" class="tap-pad" style="width:18px;height:18px;border-radius:999px;border:none;background:{{sec.accentColor}};flex-shrink:0;cursor:pointer;margin-top:1px;padding:0;display:flex;align-items:center;justify-content:center;">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                           </button>
@@ -617,6 +725,7 @@ function uid(){ return Date.now().toString(36) + Math.random().toString(36).slic
 const VOICE_DB = 'journal-zero-voice';
 const VOICE_STORE = 'queue';
 const VOICE_SYNC_TAG = 'voice-queue-sync';
+const APP_VERSION = '1.3.0';
 
 function openVoiceDb() {
   return new Promise((resolve, reject) => {
@@ -666,6 +775,15 @@ function voiceQueueRemove(id) {
 
 function voiceQueueCount() {
   return voiceQueueAll().then((items) => items.length);
+}
+
+function voiceQueueGet(id) {
+  return openVoiceDb().then((db) => new Promise((resolve, reject) => {
+    const tx = db.transaction(VOICE_STORE, 'readonly');
+    const req = tx.objectStore(VOICE_STORE).get(id);
+    req.onsuccess = () => { db.close(); resolve(req.result || null); };
+    req.onerror = () => reject(req.error);
+  }));
 }
 function todayKeyFn(){ const n = new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
 const MOOD_BG_LIGHT = { blue:'#eef1fb', red:'#fbeaea', green:'#eaf6ee', yellow:'#fdf6e3' };
@@ -731,7 +849,11 @@ function derivePageScheme(seedHex){
 class Component extends DCLogic {
   state = {
     theme: (typeof localStorage!=='undefined' && localStorage.getItem('planner_theme')) || 'light',
-    tab: 'today',
+    tab: (() => {
+      if (typeof localStorage === 'undefined') return 'today';
+      const t = localStorage.getItem('planner_tab');
+      return ['today', 'journal', 'lists'].includes(t) ? t : 'today';
+    })(),
     apiKey: (typeof localStorage!=='undefined' && localStorage.getItem('planner_api_key')) || '',
     setupOpen: false,
     journal: loadJSON('planner_journal', {}),
@@ -755,14 +877,36 @@ class Component extends DCLogic {
     quickAdd: { todo:'', person:'', payment:'' },
     viewportWidth: (typeof window !== 'undefined') ? window.innerWidth : 480,
     currency: (typeof localStorage!=='undefined' && localStorage.getItem('planner_currency')) || 'INR',
-    widgetX: (typeof window !== 'undefined') ? window.innerWidth / 2 : 240,
-    widgetY: (typeof window !== 'undefined') ? window.innerHeight - 80 : 800,
+    widgetX: (() => {
+      if (typeof localStorage === 'undefined') return (typeof window !== 'undefined') ? window.innerWidth / 2 : 240;
+      const v = parseFloat(localStorage.getItem('planner_widget_x'));
+      return Number.isFinite(v) ? v : ((typeof window !== 'undefined') ? window.innerWidth / 2 : 240);
+    })(),
+    widgetY: (() => {
+      if (typeof localStorage === 'undefined') return (typeof window !== 'undefined') ? window.innerHeight - 80 : 800;
+      const v = parseFloat(localStorage.getItem('planner_widget_y'));
+      return Number.isFinite(v) ? v : ((typeof window !== 'undefined') ? window.innerHeight - 80 : 800);
+    })(),
     hintToggle: false,
     clockTick: 0,
     schemeColor: (typeof localStorage!=='undefined' && parseHexColor(localStorage.getItem('planner_scheme_color'))) || '',
     voiceQueueCount: 0,
+    voiceQueueItems: [],
+    voiceQueueOpen: false,
     isOffline: false,
+    shortcutsOpen: false,
+    swUpdateReady: false,
+    dragImportActive: false,
+    contextMenu: null,
   };
+
+  isDesktopUI() {
+    return (this.state.viewportWidth || 480) >= 1024;
+  }
+  modKeyLabel() {
+    if (typeof navigator !== 'undefined' && /Mac|iPhone|iPod|iPad/.test(navigator.platform || '')) return '⌘';
+    return 'Ctrl';
+  }
 
   isTypingTarget(el) {
     if (!el || !el.tagName) return false;
@@ -822,7 +966,10 @@ class Component extends DCLogic {
     const title = params.get('title');
     const text = params.get('text');
     const url = params.get('url');
-    if (tab === 'today' || tab === 'journal' || tab === 'lists') this.switchTab(tab);
+    if (tab === 'today' || tab === 'journal' || tab === 'lists') {
+      this.switchTab(tab);
+      if (typeof localStorage !== 'undefined') localStorage.setItem('planner_tab', tab);
+    }
     if (action === 'record') setTimeout(() => this.toggleVoiceRecord(), 300);
     if (title || text || url) this.handleSharedContent({ title, text, url });
     if (tab || action || title || text || url) {
@@ -831,6 +978,51 @@ class Component extends DCLogic {
       window.history.replaceState({}, '', clean.pathname + clean.hash);
     }
   };
+  appendToTodayJournal = (content) => {
+    const text = (content || '').trim();
+    if (!text) return;
+    const key = todayKeyFn();
+    const journal = { ...this.state.journal };
+    const line = '• ' + text.split('\n').join('\n• ');
+    const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], dumps: [], createdAt: new Date().toISOString() };
+    existing.content = existing.content ? existing.content + '\n' + line : line;
+    existing.updatedAt = new Date().toISOString();
+    journal[key] = existing;
+    saveJSON('planner_journal', journal);
+    this.setState({ journal });
+  };
+  closeContextMenu = () => { if (this.state.contextMenu) this.setState({ contextMenu: null }); };
+  showListContextMenu = (e, listType, id, done) => {
+    if (!this.isDesktopUI()) return;
+    if (e && e.preventDefault) e.preventDefault();
+    const menuW = 160;
+    const menuH = 132;
+    const x = Math.min(e.clientX, (typeof window !== 'undefined' ? window.innerWidth : 800) - menuW - 8);
+    const y = Math.min(e.clientY, (typeof window !== 'undefined' ? window.innerHeight : 600) - menuH - 8);
+    this.setState({
+      contextMenu: {
+        x: Math.max(8, x), y: Math.max(8, y), canToggle: true,
+        toggleLabel: done ? 'Mark not done' : 'Mark done',
+        onToggle: () => { this.toggleItemDone(listType, id); this.closeContextMenu(); },
+        onEdit: () => { this.closeContextMenu(); this.openItemEditor(listType, id); },
+        onDelete: () => {
+          this.closeContextMenu();
+          if (typeof window !== 'undefined' && window.confirm && !window.confirm('Delete this item?')) return;
+          this.deleteItem(listType, id);
+        },
+      },
+    });
+  };
+  onDocumentPaste = (e) => {
+    if (!this.isDesktopUI()) return;
+    if (this.isTypingTarget(e.target)) return;
+    if (this.state.searchOpen || this.state.setupOpen || this.state.shortcutsOpen || this.state.contextMenu) return;
+    if (this.state.journalModalKey || this.state.itemEditor) return;
+    const text = e.clipboardData && e.clipboardData.getData('text/plain');
+    if (!text || !text.trim()) return;
+    e.preventDefault();
+    this.appendToTodayJournal(text.trim());
+  };
   handleSharedContent = ({ title, text, url }) => {
     const parts = [];
     if (title && title.trim()) parts.push(title.trim());
@@ -838,15 +1030,7 @@ class Component extends DCLogic {
     if (url && url.trim() && url.trim() !== (text || '').trim()) parts.push(url.trim());
     const content = parts.join('\n').trim();
     if (!content) return;
-    const key = todayKeyFn();
-    const journal = { ...this.state.journal };
-    const line = '• ' + content.split('\n').join('\n• ');
-    const existing = journal[key] || { content: '', mood: 'yellow', introspections: [], dumps: [], createdAt: new Date().toISOString() };
-    existing.content = existing.content ? existing.content + '\n' + line : line;
-    existing.updatedAt = new Date().toISOString();
-    journal[key] = existing;
-    saveJSON('planner_journal', journal);
-    this.setState({ journal });
+    this.appendToTodayJournal(content);
     this.switchTab('journal');
   };
   isOffline = () => typeof navigator !== 'undefined' && !navigator.onLine;
@@ -855,13 +1039,84 @@ class Component extends DCLogic {
     const msg = String((e && e.message) || e || '').toLowerCase();
     return msg.includes('failed to fetch') || msg.includes('network') || msg.includes('load failed') || msg.includes('fetch');
   };
-  refreshVoiceQueueCount = async () => {
+  refreshVoiceQueue = async () => {
     if (typeof indexedDB === 'undefined') return;
     try {
-      const count = await voiceQueueCount();
-      this.setState({ voiceQueueCount: count });
+      const items = await voiceQueueAll();
+      items.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      this.setState({
+        voiceQueueCount: items.length,
+        voiceQueueItems: items.map((it) => ({
+          id: it.id,
+          label: new Date(it.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
+          onRetry: () => this.processQueuedItem(it.id),
+          onDelete: () => this.deleteQueuedItem(it.id),
+        })),
+      });
     } catch (e) {}
   };
+  processQueuedItem = async (id) => {
+    if (this.isOffline() || !this.state.apiKey) {
+      if (!this.state.apiKey) this.openSetup();
+      return;
+    }
+    const item = await voiceQueueGet(id);
+    if (!item) { await this.refreshVoiceQueue(); return; }
+    const prevIntrospect = this.state.introspectKey;
+    if (item.introspectKey) this.setState({ introspectKey: item.introspectKey });
+    try {
+      await this.processBlob(item.blob, { fromQueue: true });
+      await voiceQueueRemove(item.id);
+    } catch (e) {
+      if (item.introspectKey) this.setState({ introspectKey: prevIntrospect });
+    }
+    await this.refreshVoiceQueue();
+  };
+  deleteQueuedItem = async (id) => {
+    await voiceQueueRemove(id);
+    await this.refreshVoiceQueue();
+  };
+  openVoiceQueue = () => { if (this.state.voiceQueueCount > 0) this.setState({ voiceQueueOpen: true }); };
+  closeVoiceQueue = () => this.setState({ voiceQueueOpen: false });
+  closeVoiceQueueBackdrop = (e) => { if (e.target === e.currentTarget) this.closeVoiceQueue(); };
+  onStatusBannerClick = () => { if (this.state.voiceQueueCount > 0) this.openVoiceQueue(); };
+  setupLaunchQueue = () => {
+    if (typeof window === 'undefined' || !('launchQueue' in window)) return;
+    window.launchQueue.setConsumer(async (launchParams) => {
+      if (!launchParams.files || !launchParams.files.length) return;
+      const file = await launchParams.files[0].getFile();
+      this.importBackupFile(file);
+    });
+  };
+  syncDocumentChrome = (isRec, isProc, procTitle, mm, ss) => {
+    if (typeof document === 'undefined') return;
+    if (isRec) document.title = '\u25cf ' + mm + ':' + ss + ' \u2014 JZ';
+    else if (isProc && procTitle) document.title = procTitle + ' \u2014 JZ';
+    else document.title = 'JZ';
+  };
+  printJournal = () => {
+    if (typeof window === 'undefined') return;
+    const keys = Object.keys(this.state.journal).sort();
+    const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let body = '<h1>Journal Zero</h1><p style="color:#6b6259;font-size:0.9rem;">Printed ' + esc(new Date().toLocaleString()) + '</p>';
+    keys.forEach((key) => {
+      const e = this.state.journal[key];
+      const d = new Date(key + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      body += '<h2>' + esc(d) + '</h2><p>' + esc(e.content || '').replace(/\n/g, '<br>') + '</p>';
+      (e.introspections || []).forEach((r) => {
+        body += '<h3 style="font-size:0.8rem;color:#6b6259;text-transform:uppercase;letter-spacing:.06em;">Reflection</h3><p>' + esc(r.content || '').replace(/\n/g, '<br>') + '</p>';
+      });
+    });
+    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Journal Zero</title><style>body{font-family:Rubik,system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 24px 48px;color:#241f1a;line-height:1.6}h1{font-size:1.5rem;margin:0 0 8px}h2{font-size:0.82rem;text-transform:uppercase;letter-spacing:.08em;color:#6b6259;margin:28px 0 10px}p{margin:0 0 14px;white-space:pre-wrap}</style></head><body>' + body + '</body></html>';
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); }, 250);
+  };
+  refreshVoiceQueueCount = async () => { await this.refreshVoiceQueue(); };
   requestVoiceQueueSync = async () => {
     if (!('serviceWorker' in navigator)) return;
     try {
@@ -873,8 +1128,8 @@ class Component extends DCLogic {
     try {
       await voiceQueueAdd(blob, this.state.introspectKey);
       await this.requestVoiceQueueSync();
-      const count = await voiceQueueCount();
-      this.setState({ flowState: 'idle', voiceQueueCount: count });
+      await this.refreshVoiceQueue();
+      this.setState({ flowState: 'idle' });
     } catch (e) {
       this.showOrbErr('Could not save offline note.');
     }
@@ -900,9 +1155,10 @@ class Component extends DCLogic {
         }
         if (item.introspectKey) this.setState({ introspectKey: prevIntrospect });
       }
-      await this.refreshVoiceQueueCount();
+      await this.refreshVoiceQueue();
     } finally {
       this._flushingQueue = false;
+      if (this.state.voiceQueueCount === 0) this.setState({ voiceQueueOpen: false });
     }
   };
   handleRecordingBlob = async (blob) => {
@@ -917,7 +1173,9 @@ class Component extends DCLogic {
     this.handleDeepLink();
     this.syncAppBadge();
     this.setState({ isOffline: this.isOffline() });
-    this.refreshVoiceQueueCount().then(() => { if (!this.isOffline()) this.flushVoiceQueue(); });
+    this.setupLaunchQueue();
+    this.refreshVoiceQueue().then(() => { if (!this.isOffline()) this.flushVoiceQueue(); });
+    this.setupServiceWorkerUpdates();
     this.checkDailyDigest();
     if (typeof localStorage !== 'undefined' && !localStorage.getItem('planner_seeded')) {
       localStorage.setItem('planner_seeded', '1');
@@ -937,8 +1195,13 @@ class Component extends DCLogic {
       const mod = e.metaKey || e.ctrlKey;
       const key = e.key;
       if (mod && (key === 'k' || key === 'K')) { e.preventDefault(); this.toggleSearch(); return; }
+      if ((mod && key === '/') || key === '?') { e.preventDefault(); this.openShortcuts(); return; }
+      if (mod && (key === 'e' || key === 'E')) { e.preventDefault(); this.exportData(); return; }
       if (key === 'Escape') {
-        if (this.state.searchOpen) this.closeSearch();
+        if (this.state.contextMenu) this.closeContextMenu();
+        else if (this.state.voiceQueueOpen) this.closeVoiceQueue();
+        else if (this.state.shortcutsOpen) this.closeShortcuts();
+        else if (this.state.searchOpen) this.closeSearch();
         else if (this.state.setupOpen) this.closeSetup();
         else if (this.state.itemEditor) this.closeItemEditor();
         else if (this.state.journalModalKey) this.closeJournalModal();
@@ -974,6 +1237,8 @@ class Component extends DCLogic {
         this._onSwMessage = (e) => { if (e.data && e.data.type === 'flush-voice-queue') this.flushVoiceQueue(); };
         navigator.serviceWorker.addEventListener('message', this._onSwMessage);
       }
+      this._onPaste = (e) => this.onDocumentPaste(e);
+      document.addEventListener('paste', this._onPaste);
     }
     this._dayKey = todayKeyFn();
     this._clock = setInterval(() => this.tickClock(), 30000);
@@ -996,6 +1261,7 @@ class Component extends DCLogic {
     if (typeof window !== 'undefined' && this._onGlobalKeyDown) window.removeEventListener('keydown', this._onGlobalKeyDown);
     if (typeof window !== 'undefined' && this._onOnline) window.removeEventListener('online', this._onOnline);
     if (typeof window !== 'undefined' && this._onOffline) window.removeEventListener('offline', this._onOffline);
+    if (typeof document !== 'undefined' && this._onPaste) document.removeEventListener('paste', this._onPaste);
     if (typeof navigator !== 'undefined' && this._onSwMessage) navigator.serviceWorker.removeEventListener('message', this._onSwMessage);
     if (typeof document !== 'undefined' && this._onVis) document.removeEventListener('visibilitychange', this._onVis);
     if (typeof document !== 'undefined' && this._onWakeLockVis) document.removeEventListener('visibilitychange', this._onWakeLockVis);
@@ -1020,6 +1286,7 @@ class Component extends DCLogic {
     root.style.colorScheme = isDark ? 'dark' : 'light';
     root.style.backgroundColor = pal.bg;
     if (document.body) document.body.style.backgroundColor = pal.bg;
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => { meta.content = pal.bg; });
     root.style.setProperty('--bg', pal.bg);
     root.style.setProperty('--surface', pal.surface);
     root.style.setProperty('--surface2', pal.surface2);
@@ -1052,6 +1319,7 @@ class Component extends DCLogic {
     if (tab === this.state.tab) return;
     const order = ['today', 'journal', 'lists'];
     const dir = order.indexOf(tab) > order.indexOf(this.state.tab) ? 1 : -1;
+    if (typeof localStorage !== 'undefined') localStorage.setItem('planner_tab', tab);
     this.setState({ tab, tabDir: dir });
   };
   gotoToday = () => this.switchTab('today');
@@ -1069,6 +1337,104 @@ class Component extends DCLogic {
     localStorage.setItem('planner_api_key', k);
     this.setState({ apiKey: k, errHome: '', apiKeyDraft: '', setupOpen: false }, () => this.flushVoiceQueue());
   };
+
+  importBackupData = (data, opts = {}) => {
+    if (!data || typeof data !== 'object') throw new Error('bad file');
+    const journal = data.journal && typeof data.journal === 'object' ? data.journal : this.state.journal;
+    const srcLists = data.lists && typeof data.lists === 'object' ? data.lists : this.state.lists;
+    const lists = { todo: srcLists.todo || [], person: srcLists.person || [], payment: srcLists.payment || [] };
+    saveJSON('planner_journal', journal);
+    saveJSON('planner_lists', lists);
+    if (data.currency) localStorage.setItem('planner_currency', data.currency);
+    if (data.theme) localStorage.setItem('planner_theme', data.theme);
+    let schemeColor = this.state.schemeColor;
+    if (Object.prototype.hasOwnProperty.call(data, 'schemeColor')) {
+      schemeColor = parseHexColor(data.schemeColor);
+      if (schemeColor) localStorage.setItem('planner_scheme_color', schemeColor);
+      else localStorage.removeItem('planner_scheme_color');
+    }
+    this.setState({
+      journal, lists,
+      currency: data.currency || this.state.currency,
+      theme: data.theme || this.state.theme,
+      schemeColor,
+      errHome: opts.silent ? '' : '',
+      dragImportActive: false,
+    });
+  };
+  importBackupFile = (file, opts = {}) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (!opts.skipConfirm && typeof window !== 'undefined' && window.confirm && !window.confirm('Replace journal and lists on this device with this backup?')) return;
+        this.importBackupData(data, opts);
+      } catch (err) {
+        this.setState({ errHome: 'Import failed: file is not a valid backup.', dragImportActive: false });
+      }
+    };
+    reader.readAsText(file);
+  };
+  onRootDragEnter = (e) => {
+    if (!this.isDesktopUI() || !e.dataTransfer) return;
+    if (![...e.dataTransfer.types].includes('Files')) return;
+    e.preventDefault();
+    this.setState({ dragImportActive: true });
+  };
+  onRootDragOver = (e) => {
+    if (!this.isDesktopUI() || !e.dataTransfer) return;
+    if (![...e.dataTransfer.types].includes('Files')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    if (!this.state.dragImportActive) this.setState({ dragImportActive: true });
+  };
+  onRootDragLeave = (e) => {
+    if (!this.state.dragImportActive) return;
+    if (e.currentTarget === e.target) this.setState({ dragImportActive: false });
+  };
+  onRootDrop = (e) => {
+    if (!this.isDesktopUI() || !e.dataTransfer) return;
+    e.preventDefault();
+    this.setState({ dragImportActive: false });
+    const file = [...e.dataTransfer.files].find(f => f.name.endsWith('.json') || f.type.includes('json'));
+    if (!file) {
+      this.setState({ errHome: 'Drop a .json backup file to import.' });
+      return;
+    }
+    this.importBackupFile(file);
+  };
+  setupServiceWorkerUpdates = () => {
+    if (!('serviceWorker' in navigator)) return;
+    const trackWorker = (worker) => {
+      if (!worker) return;
+      worker.addEventListener('statechange', () => {
+        if (worker.state !== 'installed') return;
+        if (navigator.serviceWorker.controller) this.setState({ swUpdateReady: true });
+        else worker.postMessage({ type: 'skip-waiting' });
+      });
+    };
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      if (reg.waiting && navigator.serviceWorker.controller) this.setState({ swUpdateReady: true });
+      if (reg.installing) trackWorker(reg.installing);
+      reg.addEventListener('updatefound', () => trackWorker(reg.installing));
+    }).catch(function () {});
+    this._swRefreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (this._swRefreshing) return;
+      this._swRefreshing = true;
+      window.location.reload();
+    });
+  };
+  applySwUpdate = () => {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then((reg) => {
+      if (reg.waiting) reg.waiting.postMessage({ type: 'skip-waiting' });
+    });
+  };
+  openShortcuts = () => this.setState({ shortcutsOpen: true, searchOpen: false });
+  closeShortcuts = () => this.setState({ shortcutsOpen: false });
+  closeShortcutsBackdrop = (e) => { if (e.target === e.currentTarget) this.closeShortcuts(); };
 
   exportData = () => {
     const payload = {
@@ -1088,38 +1454,7 @@ class Component extends DCLogic {
   onImportFile = (e) => {
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
-    if (!file) return;
-    if (typeof window !== 'undefined' && window.confirm && !window.confirm('Replace journal and lists on this device with this backup?')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result);
-        if (!data || typeof data !== 'object') throw new Error('bad file');
-        const journal = data.journal && typeof data.journal === 'object' ? data.journal : this.state.journal;
-        const srcLists = data.lists && typeof data.lists === 'object' ? data.lists : this.state.lists;
-        const lists = { todo: srcLists.todo || [], person: srcLists.person || [], payment: srcLists.payment || [] };
-        saveJSON('planner_journal', journal);
-        saveJSON('planner_lists', lists);
-        if (data.currency) localStorage.setItem('planner_currency', data.currency);
-        if (data.theme) localStorage.setItem('planner_theme', data.theme);
-        let schemeColor = this.state.schemeColor;
-        if (Object.prototype.hasOwnProperty.call(data, 'schemeColor')) {
-          schemeColor = parseHexColor(data.schemeColor);
-          if (schemeColor) localStorage.setItem('planner_scheme_color', schemeColor);
-          else localStorage.removeItem('planner_scheme_color');
-        }
-        this.setState({
-          journal, lists,
-          currency: data.currency || this.state.currency,
-          theme: data.theme || this.state.theme,
-          schemeColor,
-          errHome: '',
-        });
-      } catch (err) {
-        this.setState({ errHome: 'Import failed: file is not a valid backup.' });
-      }
-    };
-    reader.readAsText(file);
+    this.importBackupFile(file);
   };
 
   showOrbErr = (msg) => {
@@ -1139,6 +1474,7 @@ class Component extends DCLogic {
   onWidgetPointerDown = (e) => {
     if (this.state.flowState === 'proc') return;
     this.setState({ hintDismissed: true });
+    if (this.isDesktopUI() && !e.altKey) return;
     this._dragging = true;
     this._dragStartX = e.clientX || (e.touches && e.touches[0].clientX);
     this._dragStartY = e.clientY || (e.touches && e.touches[0].clientY);
@@ -1166,6 +1502,10 @@ class Component extends DCLogic {
     if (!this._dragging) return;
     this._dragging = false;
     if (typeof e.target.releasePointerCapture === 'function') e.target.releasePointerCapture(e.pointerId);
+    if (this._hasDragged && typeof localStorage !== 'undefined') {
+      localStorage.setItem('planner_widget_x', String(this.state.widgetX));
+      localStorage.setItem('planner_widget_y', String(this.state.widgetY));
+    }
   };
   onReflectTap = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -1181,6 +1521,10 @@ class Component extends DCLogic {
   onWidgetClick = (e) => {
     if (this._hasDragged) return;
     if (this.state.flowState === 'proc') return;
+    if (this.isDesktopUI() && !(e && e.altKey)) {
+      this.toggleVoiceRecord();
+      return;
+    }
     if (this.state.flowState === 'rec') {
       this._holding = false;
       this.stopRec(true);
@@ -1607,6 +1951,7 @@ class Component extends DCLogic {
         onPointerDown: draggable ? (e) => this.onListItemPointerDown(listType, it.id, e) : undefined,
         onPointerMove: draggable ? (e) => this.onListItemPointerMove(listType, it.id, e) : undefined,
         onPointerUp: draggable ? (e) => this.onListItemPointerUp(listType, it.id, e) : undefined,
+        onContextMenu: (e) => this.showListContextMenu(e, listType, it.id, it.done),
       };
     };
     const sortedActive = [...active].sort((a, b) => {
@@ -1723,13 +2068,41 @@ class Component extends DCLogic {
     return text;
   }
 
+  computeDesktopListsGlance(){
+    const lists = this.state.lists;
+    const cc = this.categoryColors();
+    const TYPE_COLOR = { todo: cc[0], person: cc[1], payment: cc[2] };
+    const todayStr = todayKeyFn();
+    const displayText = (t, it) => (t === 'person' && it.contact) ? (it.contact + (it.text ? ' — ' + it.text : '')) : it.text;
+    const all = [];
+    ['todo','person','payment'].forEach(t => (lists[t]||[]).filter(it => !it.done).forEach(it => {
+      const urgent = !!(it.due && it.due <= todayStr);
+      all.push({
+        id: it.id, listType: t, text: displayText(t, it), color: TYPE_COLOR[t],
+        urgent, due: it.due || '',
+        open: () => { this.switchTab('lists'); this.openItemEditor(t, it.id); },
+      });
+    }));
+    all.sort((a, b) => {
+      if (a.urgent !== b.urgent) return a.urgent ? -1 : 1;
+      if (a.urgent) return (a.due || '').localeCompare(b.due || '');
+      return 0;
+    });
+    return all.slice(0, 8).map(it => ({
+      text: it.text,
+      color: it.color,
+      meta: it.urgent ? (it.due < todayStr ? 'Overdue' : 'Today') : '',
+      open: it.open,
+    }));
+  }
+
   requestNotifPermission = async () => {
     if (typeof Notification === 'undefined') return;
     const perm = await Notification.requestPermission();
     this.setState({ notifPermission: perm });
     if (perm === 'granted') this.checkDailyDigest();
   };
-  toggleSearch = () => this.setState(s => ({ searchOpen: !s.searchOpen, searchQuery: s.searchOpen ? s.searchQuery : '' }));
+  toggleSearch = () => this.setState(s => ({ searchOpen: !s.searchOpen, searchQuery: s.searchOpen ? s.searchQuery : '', shortcutsOpen: false }));
   closeSearch = () => this.setState({ searchOpen: false });
   closeSearchBackdrop = (e) => { if (e.target === e.currentTarget) this.closeSearch(); };
   onSearchQueryChange = (e) => this.setState({ searchQuery: e.target.value });
@@ -1789,6 +2162,14 @@ class Component extends DCLogic {
     };
 
     const todayColStyle = { display: 'flex', flexDirection: 'column', gap: '18px', width: '100%', alignSelf: 'stretch', ...pageAnim };
+    const todayOuterStyle = isDesktop
+      ? { display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: '20px', alignItems: 'start', width: '100%' }
+      : { display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' };
+    const todaySideColStyle = { display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 };
+    const todayJournalGridStyle = isTabletUp && !isDesktop
+      ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }
+      : { display: 'flex', flexDirection: 'column', gap: '16px' };
+    const desktopListsGlance = isDesktop ? this.computeDesktopListsGlance() : [];
     const journalTabStyle = { display: 'flex', flexDirection: 'column', gap: '18px', ...pageAnim };
     const density = this.props.journalDensity || 'comfortable';
     const journalColGap = density === 'compact' ? '12px' : '18px';
@@ -1802,8 +2183,6 @@ class Component extends DCLogic {
         : { display: 'flex', flexDirection: 'column', gap: '26px' }),
       ...pageAnim,
     };
-    const priorityGridStyle = isTabletUp ? { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', alignItems:'start' } : { display:'flex', flexDirection:'column', gap:'16px' };
-
     const moodBgMap = isDark ? MOOD_BG_DARK : MOOD_BG_LIGHT;
     const entryKeys = Object.keys(this.state.journal).sort();
     const entriesList = entryKeys.slice().reverse().map(key => {
@@ -1857,20 +2236,39 @@ class Component extends DCLogic {
 
     const searchQuery = (this.state.searchQuery || '').trim().toLowerCase();
     const searchResults = [];
-    
-    // 1. Actions
+    const mk = this.modKeyLabel();
+
     const ACTIONS = [
-      { id: 'a-write', kind: 'Action', text: "Write today's journal entry", open: () => this.writeTodayEntry() },
-      { id: 'a-rec', kind: 'Action', text: 'Create Journal Entry', open: () => { this.closeSearch(); this.onWidgetClick(); } },
-      { id: 'a-todo', kind: 'Action', text: 'Create To-Do', open: () => { this.closeSearch(); this.switchTab('lists'); this.openItemEditor('todo'); } },
-      { id: 'a-settings', kind: 'Action', text: 'Open Settings', open: () => { this.closeSearch(); this.openSetup(); } },
-      { id: 'a-journal', kind: 'Action', text: 'View Journal Tab', open: () => { this.closeSearch(); this.switchTab('journal'); } },
-      { id: 'a-lists', kind: 'Action', text: 'View Lists Tab', open: () => { this.closeSearch(); this.switchTab('lists'); } },
+      { id: 'a-rec', kind: 'Action', text: 'Record voice note', keys: 'R', keywords: 'record voice mic audio speak', open: () => { this.closeSearch(); this.toggleVoiceRecord(); } },
+      { id: 'a-write', kind: 'Action', text: "Write today's journal entry", keys: 'N', keywords: 'journal write entry today note', open: () => { this.closeSearch(); this.writeTodayEntry(); } },
+      { id: 'a-todo', kind: 'Action', text: 'Create to-do', keys: '', keywords: 'task todo list add new', open: () => { this.closeSearch(); this.switchTab('lists'); this.openItemEditor('todo'); } },
+      { id: 'a-export', kind: 'Action', text: 'Export backup', keys: mk + 'E', keywords: 'export backup download json save', open: () => { this.closeSearch(); this.exportData(); } },
+      { id: 'a-print', kind: 'Action', text: 'Print journal', keys: '', keywords: 'print pdf journal export paper', open: () => { this.closeSearch(); this.printJournal(); } },
+      { id: 'a-import', kind: 'Action', text: 'Import backup', keys: '', keywords: 'import backup restore upload json', open: () => { this.closeSearch(); this.triggerImport(); } },
+      { id: 'a-today', kind: 'Action', text: 'Go to Today', keys: '1', keywords: 'today home dashboard', open: () => { this.closeSearch(); this.switchTab('today'); } },
+      { id: 'a-journal', kind: 'Action', text: 'Go to Journal', keys: '2', keywords: 'journal entries history', open: () => { this.closeSearch(); this.switchTab('journal'); } },
+      { id: 'a-lists', kind: 'Action', text: 'Go to Lists', keys: '3', keywords: 'lists tasks todos people payments', open: () => { this.closeSearch(); this.switchTab('lists'); } },
+      { id: 'a-settings', kind: 'Action', text: 'Open settings', keys: '', keywords: 'settings preferences api key theme', open: () => { this.closeSearch(); this.openSetup(); } },
+      { id: 'a-shortcuts', kind: 'Action', text: 'Keyboard shortcuts', keys: '?', keywords: 'help shortcuts hotkeys keys commands', open: () => { this.closeSearch(); this.openShortcuts(); } },
     ];
     ACTIONS.forEach(a => {
-      if (!searchQuery || a.text.toLowerCase().includes(searchQuery)) searchResults.push(a);
+      const hay = (a.text + ' ' + (a.keywords || '')).toLowerCase();
+      if (!searchQuery || hay.includes(searchQuery)) searchResults.push(a);
     });
 
+    const shortcutRows = [
+      { label: 'Command palette', keys: mk + 'K' },
+      { label: 'Keyboard shortcuts', keys: '? or ' + mk + '/' },
+      { label: 'Record voice note', keys: 'R' },
+      { label: "Today's journal entry", keys: 'N' },
+      { label: 'Focus quick-add', keys: '/' },
+      { label: 'Export backup', keys: mk + 'E' },
+      { label: 'Print journal', keys: '' },
+      { label: 'Paste to journal', keys: mk + 'V' },
+      { label: 'Today / Journal / Lists', keys: '1 / 2 / 3' },
+      { label: 'Close overlay', keys: 'Esc' },
+      { label: 'Move record button', keys: 'Alt + drag' },
+    ];
     if (searchQuery) {
       const LIST_LABELS = { todo:'To-Dos', person:'People', payment:'Payments' };
       entryKeys.forEach(key => {
@@ -2032,19 +2430,35 @@ class Component extends DCLogic {
     const hintPillStyle = { background:'var(--surface)', color:'var(--text2)', borderRadius:'999px', padding:'7px 14px', fontSize:'0.74rem', fontWeight:400, boxShadow:'0 6px 16px rgba(0,0,0,0.10)', pointerEvents:'none', maxWidth:'280px', textAlign:'center' };
     const recWaveColor = 'var(--bg)';
 
+    this.syncDocumentChrome(isRec, isProc, this.state.procTitle, mm, ss);
 
     return {
       rootStyle, isDark, isLight: !isDark, greeting, headerDate,
-      isDesktop, isMobile, isTablet, isTabletUp, shellStyle, mainStyle, headerStyle, navStyle, todayColStyle, journalWrapStyle, listsGridStyle, priorityGridStyle,
+      isDesktop, isMobile, isTablet, isTabletUp, shellStyle, mainStyle, headerStyle, navStyle, todayColStyle, todayOuterStyle, todaySideColStyle, todayJournalGridStyle, desktopListsGlance, journalWrapStyle, listsGridStyle,
       setupOpen: this.state.setupOpen, errHome: this.state.errHome, orbErr: this.state.orbErr,
+      swUpdateReady: this.state.swUpdateReady, applySwUpdate: this.applySwUpdate,
+      shortcutsOpen: this.state.shortcutsOpen, shortcutRows,
+      closeShortcuts: this.closeShortcuts, closeShortcutsBackdrop: this.closeShortcutsBackdrop,
+      dragImportActive: this.state.dragImportActive,
+      onRootDragEnter: this.onRootDragEnter, onRootDragOver: this.onRootDragOver,
+      onRootDragLeave: this.onRootDragLeave, onRootDrop: this.onRootDrop,
+      contextMenu: this.state.contextMenu, closeContextMenu: this.closeContextMenu,
+      appVersionLabel: 'JZ ' + APP_VERSION,
       showStatusBanner: this.state.isOffline || this.state.voiceQueueCount > 0,
       statusBannerText: this.state.isOffline
         ? (this.state.voiceQueueCount > 0
-          ? 'Offline — ' + this.state.voiceQueueCount + ' voice note' + (this.state.voiceQueueCount > 1 ? 's' : '') + ' queued'
+          ? 'Offline — ' + this.state.voiceQueueCount + ' voice note' + (this.state.voiceQueueCount > 1 ? 's' : '') + ' queued · tap to manage'
           : 'Offline — saved entries still available')
         : (this.state.voiceQueueCount > 0
-          ? this.state.voiceQueueCount + ' voice note' + (this.state.voiceQueueCount > 1 ? 's' : '') + ' queued — processing…'
+          ? this.state.voiceQueueCount + ' voice note' + (this.state.voiceQueueCount > 1 ? 's' : '') + ' queued — tap to manage'
           : ''),
+      statusBannerClickStyle: this.state.voiceQueueCount > 0 ? 'cursor:pointer;' : '',
+      onStatusBannerClick: this.onStatusBannerClick,
+      voiceQueueOpen: this.state.voiceQueueOpen,
+      voiceQueueItems: this.state.voiceQueueItems,
+      closeVoiceQueue: this.closeVoiceQueue,
+      closeVoiceQueueBackdrop: this.closeVoiceQueueBackdrop,
+      flushVoiceQueue: this.flushVoiceQueue,
       submitApiKeyFromInput: this.submitApiKeyFromInput, openSetup: this.openSetup,
       closeSetup: this.closeSetup, closeSetupBackdrop: this.closeSetupBackdrop,
       onWidgetPointerDown: this.onWidgetPointerDown, onWidgetPointerMove: this.onWidgetPointerMove,
@@ -2053,7 +2467,7 @@ class Component extends DCLogic {
       apiKeyStatusLabel: this.state.apiKey ? 'Connected · ····' + this.state.apiKey.slice(-4) : 'Not connected',
       apiKeyStatusColor: this.state.apiKey ? 'var(--accent)' : 'var(--danger)',
       apiKeyPlaceholder: this.state.apiKey ? 'Replace key…' : 'gsk_…',
-      exportData: this.exportData, triggerImport: this.triggerImport, onImportFile: this.onImportFile,
+      exportData: this.exportData, printJournal: this.printJournal, triggerImport: this.triggerImport, onImportFile: this.onImportFile,
       stopProp: this.stopProp, preventContextMenu: this.preventContextMenu,
       isTodayTab: this.state.tab === 'today', isJournalTab: this.state.tab === 'journal', isListsTab: this.state.tab === 'lists',
       gotoToday: this.gotoToday, gotoJournal: this.gotoJournal, gotoLists: this.gotoLists,
@@ -2110,7 +2524,7 @@ class Component extends DCLogic {
       isIdle, isRec, isNotRec: !isRec, isProc, isNotProc: !isProc, procTitle: this.state.procTitle, procStep: this.state.procStep,
       isIntrospecting: !!introspectKey, isNotIntrospecting: !introspectKey, introspectLabel, cancelIntrospect: this.cancelIntrospect,
       recLabel: isRec ? 'Recording — release to stop' : introspectKey ? verb + ' to reflect' : (todaysEntry ? verb + ' to record more' : verb + ' to record'),
-      recHint: isRec ? '' : introspectKey ? ('Click to reflect') : (todaysEntry ? 'Click to record more' : (this.state.hintToggle ? 'Drag to move this button' : 'Click to record an entry')),
+      recHint: isRec ? '' : introspectKey ? ('Click to reflect') : (isDesktop ? 'Click to record · Alt+drag to move' : (todaysEntry ? 'Click to record more' : (this.state.hintToggle ? 'Drag to move this button' : 'Click to record an entry'))),
       recLabelColor: '#fff', recWaveColor,
       recTimerLabel: mm + ':' + ss,
       recBtnStyleCompact, modalProcBg,
@@ -2133,13 +2547,6 @@ class Component extends DCLogic {
   }
 }
 
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js').catch(function () {});
-  });
-}
 </script>
 </body>
 </html>

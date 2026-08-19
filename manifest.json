@@ -4,6 +4,7 @@
   "description": "Local-first voice journal and planner.",
   "start_url": "./index.html",
   "scope": "./",
+  "display_override": ["window-controls-overlay", "standalone"],
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#fdfaf8",
@@ -31,6 +32,14 @@
       "url": "url"
     }
   },
+  "file_handlers": [
+    {
+      "action": "./index.html",
+      "accept": {
+        "application/json": [".json"]
+      }
+    }
+  ],
   "shortcuts": [
     {
       "name": "Record",

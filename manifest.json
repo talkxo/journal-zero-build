@@ -1,6 +1,6 @@
 {
   "name": "Journal Zero",
-  "short_name": "Journal Zero",
+  "short_name": "JZ",
   "description": "Local-first voice journal and planner.",
   "start_url": "./index.html",
   "scope": "./",
